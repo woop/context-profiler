@@ -17,7 +17,7 @@ A prototype that profiles CLAUDE.md instructions against real Claude Code sessio
 
 **[Run](profiler/run_task.py)**: Runs each task in an isolated copy of the repo. All agent events are serialized to JSONL traces.
 
-**Ablate**: Re-runs the same task with a specific instruction removed. The resulting trace is compared against the full-context trace.
+**[Ablate](profiler/run_task.py#L61)**: Re-runs the same task with a specific instruction removed. The resulting trace is compared against the full-context trace.
 
 **[Assess](profiler/assess.py)**: Reads all traces (full and ablated) and produces a structured verdict per instruction: keep, update, remove, or add_test, with evidence and explanation.
 
@@ -71,3 +71,12 @@ app/frontend/       Review UI for the annotated context file
 
 - **profiler/** (38 Python): extract helpers, artifact integrity (schema validation, offset round-trip, cross-artifact ID consistency, ablation, evidence alignment)
 - **app/frontend/** (27 vitest): highlight rendering, popover behavior, drift detection, real artifact integration
+
+## AI session traces
+
+[`traces/`](traces/) contains the raw Claude Code session logs (JSONL) for the four substantive sessions that produced this prototype:
+
+- **[main-thread-and-backend/](traces/main-thread-and-backend/)** — primary orchestration thread: problem framing, direction decisions, and backend pipeline build (3 subagent traces)
+- **[deployment/](traces/deployment/)** — Cloudflare Pages + GitHub Actions setup
+- **[frontend/](traces/frontend/)** — Review UI build behind the locked `review-items` contract
+- **[readme-diagrams/](traces/readme-diagrams/)** — Pipeline diagram iteration
