@@ -58,6 +58,14 @@ The prototype runs 4 tasks (each twice as a control pair) and ablates all 9 inst
 
 - **Synthetic demo vs. real-world validation**: the demo CLAUDE.md is constructed with known ground truth. The profiler is confirming known answers, not discovering unknowns. This validates the machinery; running against a real CLAUDE.md would validate the approach.
 
+## Limitations
+
+- **Single context source**: the prototype profiles one CLAUDE.md file. System prompts, skills, tool descriptions, memory entries, and retrieved documents all accumulate the same way but are not handled here.
+- **No ground-truth labels**: verdicts are qualitative judgments from a single LLM call. There is no inter-rater reliability, no rubric calibration, and no labeled dataset to evaluate assessor accuracy against.
+- **Synthetic demo only**: the demo CLAUDE.md is constructed with known ground truth. The profiler has not been validated against a real, uncontrolled CLAUDE.md.
+- **Offline only**: the pipeline runs against pre-defined tasks, not live agent sessions. There is no continuous profiling or integration with production workflows.
+- **No automated remediation**: the UI shows recommended actions but does not apply them to the source file.
+
 ## How I would extend this
 
 With more time, in order of impact:
