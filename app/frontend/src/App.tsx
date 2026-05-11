@@ -202,6 +202,7 @@ export function App({
             started={reviewStarted}
             reviewedCount={reviewedCount}
             totalCount={reviewable.length}
+            verdictCounts={review.summary.verdictCounts}
             allReviewed={allReviewed}
             onStart={startReview}
             onNext={navigateNext}
@@ -239,6 +240,7 @@ export function App({
           onClear={() => clearDecision(selected.id)}
           onSkip={() => {
             setSkipped((prev) => new Set(prev).add(selected.id));
+            if (!reviewStarted) dismiss();
           }}
           onClose={dismiss}
         />
@@ -255,33 +257,34 @@ function formatDate(iso: string): string {
   }
 }
 
+function plural(count: number, singular: string, pluralForm = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : pluralForm}`;
+}
+
 function DocHeader({ review, drift }: { review: ReviewArtifact; drift: boolean }) {
   const s = review.summary;
   const vc = s.verdictCounts;
-  const tokenSign = s.estimatedTokenChange >= 0 ? "+" : "−";
-  const tokenAbs = Math.abs(s.estimatedTokenChange);
+  const ablationRuns = s.totalInstructions;
+  const recommendationCount = vc.update + vc.remove + vc.add_test;
+  const recommendationText = `Found ${plural(recommendationCount, "recommended edit")}: ${plural(vc.update, "testing update")}, ${plural(vc.remove, "removal")} for stale or conflicting guidance`;
 
   return (
     <div className="doc-header">
-      <h1>Context Profiler</h1>
+      <h1>Find dead and conflicting instructions in CLAUDE.md</h1>
       <span className="dh-path">{review.source.repoName} / {review.source.contextPath}</span>
+      <p className="dh-grounding">
+        Demo CLAUDE.md from a Python CLI repo, profiled against {s.totalRuns} baseline Claude Code runs and {ablationRuns} ablations. {recommendationText}.
+      </p>
       <span className="dh-summary">
         <span tabIndex={0} data-tooltip="Individual rules extracted from the CLAUDE.md">{s.totalInstructions} instructions</span>
         {" · "}
-        <span tabIndex={0} data-tooltip="Agent task runs used for evaluation">{s.totalRuns} {s.totalRuns === 1 ? "run" : "runs"}</span>
+        <span tabIndex={0} data-tooltip="Full-context baseline traces used for evaluation">{s.totalRuns} baseline</span>
+        {" · "}
+        <span tabIndex={0} data-tooltip="Single-instruction ablation traces used for directional evidence">{ablationRuns} ablations</span>
         {vc.keep > 0 && <>{" · "}<span tabIndex={0} data-tooltip="Instructions that are working as intended">{vc.keep} keep</span></>}
         {vc.update > 0 && <>{" · "}<span tabIndex={0} data-tooltip="Instructions with a suggested rewrite">{vc.update} update</span></>}
-        {vc.remove > 0 && <>{" · "}<span tabIndex={0} data-tooltip="Instructions recommended for deletion">{vc.remove} remove</span></>}
+        {vc.remove > 0 && <>{" · "}<span tabIndex={0} data-tooltip="Instructions recommended for deletion">{plural(vc.remove, "removal")}</span></>}
         {vc.add_test > 0 && <>{" · "}<span tabIndex={0} data-tooltip="Instructions that need a verification check">{vc.add_test} add test</span></>}
-      </span>
-      <span className="dh-details">
-        <span tabIndex={0} data-tooltip="Agent traces showed this instruction being followed">{s.statusCounts.supported} observed</span>
-        {" · "}
-        <span tabIndex={0} data-tooltip="No agent trace exercised this instruction">{s.statusCounts.unobserved} unobserved</span>
-        {s.flagCounts.conflicting > 0 && <>{" · "}<span tabIndex={0} data-tooltip="Contradicts another instruction or the codebase">{s.flagCounts.conflicting} conflicting</span></>}
-        {s.flagCounts.stale > 0 && <>{" · "}<span tabIndex={0} data-tooltip="References files or systems that no longer exist">{s.flagCounts.stale} stale</span></>}
-        {" · "}
-        <span tabIndex={0} data-tooltip="Estimated token count change if all recommendations are applied">{tokenSign}{tokenAbs} tokens</span>
         {" · "}
         {formatDate(review.source.generatedAt)}
       </span>
@@ -290,10 +293,21 @@ function DocHeader({ review, drift }: { review: ReviewArtifact; drift: boolean }
   );
 }
 
+function VerdictLegend() {
+  return (
+    <div className="verdict-legend" aria-label="Verdict legend">
+      <span><i className="legend-swatch legend-keep" />keep</span>
+      <span><i className="legend-swatch legend-update" />update</span>
+      <span><i className="legend-swatch legend-remove" />remove</span>
+    </div>
+  );
+}
+
 function ReviewControls({
   started,
   reviewedCount,
   totalCount,
+  verdictCounts,
   allReviewed,
   onStart,
   onNext,
@@ -303,6 +317,7 @@ function ReviewControls({
   started: boolean;
   reviewedCount: number;
   totalCount: number;
+  verdictCounts: ReviewArtifact["summary"]["verdictCounts"];
   allReviewed: boolean;
   onStart: () => void;
   onNext: () => void;
@@ -312,12 +327,19 @@ function ReviewControls({
   if (totalCount === 0) return null;
 
   if (!started) {
+    const recommendationParts = [
+      verdictCounts.update > 0 ? plural(verdictCounts.update, "update") : null,
+      verdictCounts.remove > 0 ? plural(verdictCounts.remove, "removal") : null,
+      verdictCounts.add_test > 0 ? plural(verdictCounts.add_test, "test") : null,
+    ].filter(Boolean).join(" · ");
+
     return (
       <div className="rc" data-testid="review-bar">
         <button type="button" className="rc-start" onClick={onStart}>
-          Start review
+          Review {plural(totalCount, "recommendation")}
         </button>
-        <span className="rc-hint">{totalCount} {totalCount === 1 ? "item" : "items"} to review</span>
+        <span className="rc-hint">{recommendationParts}</span>
+        <VerdictLegend />
       </div>
     );
   }
@@ -344,20 +366,20 @@ function ReviewControls({
 }
 
 function stateLabel(item: ReviewItem): string {
-  const runs = `${item.metrics.sessionsObserved}/${item.metrics.totalSessions} runs`;
+  const runs = `${item.metrics.sessionsObserved}/${item.metrics.totalSessions} baseline`;
   if (item.verdict === "add_test") return `add test · ${runs}`;
   if (item.flags.includes("conflicting")) return `conflict · ${runs}`;
   if (item.flags.includes("stale")) return `stale · ${runs}`;
-  if (item.status === "supported") return `seen ${runs}`;
-  return `not seen · ${runs}`;
+  if (item.status === "supported") return `observed ${runs}`;
+  return `not observed · ${runs}`;
 }
 
 function stateLabelTooltip(item: ReviewItem): string {
   if (item.verdict === "add_test") return "This instruction needs a verification check to be enforceable";
   if (item.flags.includes("conflicting")) return "This instruction contradicts another instruction or the codebase";
   if (item.flags.includes("stale")) return "This instruction references files or systems that no longer exist";
-  if (item.status === "supported") return `Agents followed this instruction in ${item.metrics.sessionsObserved} of ${item.metrics.totalSessions} task runs`;
-  return "No agent trace exercised this instruction";
+  if (item.status === "supported") return `Assessor observed this instruction in ${item.metrics.sessionsObserved} of ${item.metrics.totalSessions} baseline traces`;
+  return "No baseline trace exercised this instruction";
 }
 
 function Highlight({

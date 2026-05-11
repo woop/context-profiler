@@ -9,8 +9,8 @@
   --accent: #0969da;
 
   --keep: #2da657;
-  --keep-bg: rgba(45, 166, 87, 0.13);
-  --keep-bg-hover: rgba(45, 166, 87, 0.22);
+  --keep-bg: rgba(45, 166, 87, 0.08);
+  --keep-bg-hover: rgba(45, 166, 87, 0.16);
 
   --update: #b87f09;
   --update-bg: rgba(184, 127, 9, 0.14);
@@ -55,11 +55,12 @@ main {
 }
 
 .doc-header h1 {
-  margin: 0 0 0.15rem 0;
-  font-size: 0.95rem;
-  font-weight: 600;
+  margin: 0.45rem 0 0.5rem 0;
+  font-size: 1.16rem;
+  font-weight: 650;
   color: var(--text);
-  letter-spacing: 0.005em;
+  letter-spacing: 0;
+  line-height: 1.25;
 }
 
 .dh-path {
@@ -69,6 +70,40 @@ main {
   color: var(--muted);
   margin-bottom: 0.15rem;
 }
+
+.dh-grounding {
+  margin: 0.35rem 0 0.65rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.verdict-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-left: auto;
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.verdict-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 0.62rem;
+  height: 0.62rem;
+  border-radius: 2px;
+}
+
+.legend-keep { background: var(--keep-bg); border: 1px solid rgba(45, 166, 87, 0.22); }
+.legend-update { background: var(--update-bg); border: 1px solid rgba(184, 127, 9, 0.28); }
+.legend-remove { background: var(--remove-bg); border: 1px solid rgba(110, 119, 129, 0.26); }
 
 .dh-summary {
   display: block;
@@ -118,6 +153,12 @@ main {
   pointer-events: none;
   transition: opacity 100ms ease;
   z-index: 30;
+}
+
+.po-top [data-tooltip]::after {
+  left: auto;
+  right: 0;
+  max-width: min(250px, calc(100vw - 2rem));
 }
 
 [data-tooltip]:hover::after,
@@ -208,7 +249,7 @@ mark.hl.decided {
   text-decoration: none;
 }
 
-mark.hl-keep     .hl-tag { background: var(--keep-bg);     color: var(--keep); }
+mark.hl-keep     .hl-tag { background: rgba(45, 166, 87, 0.10); color: var(--keep); opacity: 0.82; }
 mark.hl-update   .hl-tag { background: var(--update-bg);   color: var(--update); }
 mark.hl-remove   .hl-tag { background: var(--remove-bg);   color: var(--remove); }
 mark.hl-add_test .hl-tag { background: var(--add_test-bg); color: var(--add_test); }
@@ -446,6 +487,7 @@ mark.hl-add_test .hl-tag { background: var(--add_test-bg); color: var(--add_test
   display: flex;
   align-items: center;
   gap: 0.7rem;
+  margin-top: 1rem;
   margin-bottom: 1.2rem;
   padding-bottom: 0.8rem;
   border-bottom: 1px solid var(--border);
@@ -471,7 +513,8 @@ mark.hl-add_test .hl-tag { background: var(--add_test-bg); color: var(--add_test
 
 .rc-hint {
   font-size: 0.75rem;
-  color: var(--muted);
+  color: var(--text);
+  font-weight: 500;
 }
 
 .rc-progress {
@@ -550,7 +593,7 @@ mark.hl-add_test .hl-tag { background: var(--add_test-bg); color: var(--add_test
 }
 
 .summary-inner {
-  max-width: 520px;
+  max-width: 760px;
   width: 100%;
 }
 

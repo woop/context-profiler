@@ -106,12 +106,13 @@ const fixtureSource = "# Project\n\nKeep me.\n\nRemove me.\n";
 describe("Header", () => {
   it("renders title, repo path, and run statistics in the document column", () => {
     const { container } = render(<App review={fixtureReview} source={fixtureSource} />);
-    expect(screen.getByRole("heading", { name: /context profiler/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /dead and conflicting instructions/i })).toBeInTheDocument();
     expect(screen.getByText(/csv-stats \/ CLAUDE\.md/)).toBeInTheDocument();
     expect(container.textContent).toContain("2 instructions");
-    expect(container.textContent).toContain("1 run");
+    expect(container.textContent).toContain("1 baseline");
+    expect(container.textContent).toContain("2 ablations");
     expect(container.textContent).toContain("1 keep");
-    expect(container.textContent).toContain("1 remove");
+    expect(container.textContent).toContain("1 removal");
   });
 });
 
@@ -135,8 +136,8 @@ describe("Source document", () => {
 
   it("renders a terse state label near each highlight that reflects the most salient signal", () => {
     render(<App review={fixtureReview} source={fixtureSource} />);
-    expect(screen.getByTestId("hl-tag-instr-aaaaaaaa")).toHaveTextContent(/seen 1\/1 runs/);
-    expect(screen.getByTestId("hl-tag-instr-bbbbbbbb")).toHaveTextContent(/stale · 0\/1 runs/);
+    expect(screen.getByTestId("hl-tag-instr-aaaaaaaa")).toHaveTextContent(/observed 1\/1 baseline/);
+    expect(screen.getByTestId("hl-tag-instr-bbbbbbbb")).toHaveTextContent(/stale · 0\/1 baseline/);
   });
 
   it("uses verdict-specific labels for add_test, conflict, and not seen", () => {
@@ -183,7 +184,7 @@ describe("Source document", () => {
     render(<App review={review} source={fixtureSource} />);
     expect(screen.getByTestId("hl-tag-instr-cccccccc")).toHaveTextContent(/add test/);
     expect(screen.getByTestId("hl-tag-instr-dddddddd")).toHaveTextContent(/conflict/);
-    expect(screen.getByTestId("hl-tag-instr-eeeeeeee")).toHaveTextContent(/not seen/);
+    expect(screen.getByTestId("hl-tag-instr-eeeeeeee")).toHaveTextContent(/not observed/);
   });
 });
 
@@ -260,6 +261,14 @@ describe("Popover", () => {
     expect(screen.queryByTestId("popover")).toBeNull();
   });
 
+  it("Skip dismisses a manually opened popover outside the guided review", () => {
+    render(<App review={fixtureReview} source={fixtureSource} />);
+    fireEvent.click(screen.getByTestId("hl-instr-bbbbbbbb"));
+    expect(screen.getByTestId("popover")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /skip/i }));
+    expect(screen.queryByTestId("popover")).toBeNull();
+  });
+
   it("shows all evidence items inline, ablation evidence labeled", () => {
     render(<App review={fixtureReview} source={fixtureSource} />);
     fireEvent.click(screen.getByTestId("hl-instr-aaaaaaaa"));
@@ -281,20 +290,20 @@ describe("Popover", () => {
 describe("Review flow", () => {
   it("shows Start Review button before review begins", () => {
     render(<App review={fixtureReview} source={fixtureSource} />);
-    expect(screen.getByRole("button", { name: /start review/i })).toBeInTheDocument();
-    expect(screen.getByText(/1 item to review/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /review 1 recommendation/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/1 removal/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it("Start Review opens the popover on the first reviewable item", () => {
     render(<App review={fixtureReview} source={fixtureSource} />);
-    fireEvent.click(screen.getByRole("button", { name: /start review/i }));
+    fireEvent.click(screen.getByRole("button", { name: /review 1 recommendation/i }));
     expect(screen.getByTestId("popover")).toBeInTheDocument();
     expect(screen.getByText("Remove this")).toBeInTheDocument();
   });
 
   it("shows completion after deciding all items", () => {
     render(<App review={fixtureReview} source={fixtureSource} />);
-    fireEvent.click(screen.getByRole("button", { name: /start review/i }));
+    fireEvent.click(screen.getByRole("button", { name: /review 1 recommendation/i }));
     fireEvent.click(screen.getByRole("button", { name: /mark for removal/i }));
     expect(screen.getByText(/review complete/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /accept changes/i })).toBeInTheDocument();
@@ -302,7 +311,7 @@ describe("Review flow", () => {
 
   it("Accept changes shows the summary", () => {
     render(<App review={fixtureReview} source={fixtureSource} />);
-    fireEvent.click(screen.getByRole("button", { name: /start review/i }));
+    fireEvent.click(screen.getByRole("button", { name: /review 1 recommendation/i }));
     fireEvent.click(screen.getByRole("button", { name: /mark for removal/i }));
     fireEvent.click(screen.getByRole("button", { name: /accept changes/i }));
     expect(screen.getByTestId("summary")).toBeInTheDocument();
@@ -311,17 +320,17 @@ describe("Review flow", () => {
 
   it("skipping all items completes the review", () => {
     render(<App review={fixtureReview} source={fixtureSource} />);
-    fireEvent.click(screen.getByRole("button", { name: /start review/i }));
+    fireEvent.click(screen.getByRole("button", { name: /review 1 recommendation/i }));
     fireEvent.click(screen.getByRole("button", { name: /skip/i }));
     expect(screen.getByText(/review complete/i)).toBeInTheDocument();
   });
 
   it("Reset clears decisions and returns to Start Review", () => {
     render(<App review={fixtureReview} source={fixtureSource} />);
-    fireEvent.click(screen.getByRole("button", { name: /start review/i }));
+    fireEvent.click(screen.getByRole("button", { name: /review 1 recommendation/i }));
     fireEvent.click(screen.getByRole("button", { name: /mark for removal/i }));
     fireEvent.click(screen.getByRole("button", { name: /reset/i }));
-    expect(screen.getByRole("button", { name: /start review/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /review 1 recommendation/i })).toBeInTheDocument();
   });
 });
 
