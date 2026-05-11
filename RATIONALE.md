@@ -52,7 +52,9 @@ The prototype runs 4 tasks (each twice as a control pair) and ablates all 9 inst
 
 ## Tradeoffs
 
-- **LLM-as-judge vs. deterministic checkers**: verdicts are qualitative judgments, not quantitative measurements. No inter-rater reliability or rubric calibration. I chose this because it handles the full range of instruction types without per-instruction checker logic.
+- **LLM-as-judge vs. deterministic checkers**: verdicts are qualitative judgments, not quantitative measurements. No inter-rater reliability or rubric calibration. I chose this because it handles the full range of instruction types without per-instruction checker logic. Deterministic checkers would be cheaper per evaluation, but the development cost of writing and maintaining a checker per instruction type outweighs the inference cost of an LLM call, especially as inference gets cheaper.
+
+- **Single verdict vs. multi-dimensional scoring**: the original design explored scoring each instruction on multiple dimensions (compliance rate, behavioral impact, conflict severity). The prototype collapses these into a single verdict (keep/update/remove/add_test) with a status and optional flags. This is simpler to build and display, but loses the ability to say "this instruction is followed but has low impact" vs. "this instruction is followed and is critical."
 
 - **n=1 ablations vs. statistical rigor**: each instruction is ablated once against one selected task. Meaningful causal claims would require multiple seeds averaged across tasks. I chose full instruction coverage (9/9) over depth because coverage demonstrates the methodology more clearly for a prototype.
 
@@ -74,7 +76,8 @@ With more time, in order of impact:
 
 1. **Run against a real CLAUDE.md** from an uncontrolled project. The synthetic demo validates the machinery. Real inputs validate the approach.
 2. **Multi-seed ablations** (N=5 per instruction per task) with agreement rates. "Removing X changed behavior in 4/5 runs" is a meaningful claim.
-3. **Broader context sources**: profile system prompts, tool descriptions, memory stores, skills. The unit of analysis is always "a piece of text that was present when the agent ran."
-4. **Prompt optimization**: close the loop by automatically rewriting underperforming instructions, re-running the task suite against the proposed change, and accepting the rewrite only if the suite passes. The assessor already proposes replacements for "update" verdicts; automating the validation step is what's missing.
-5. **Context budgeting**: each instruction has a token cost (measured) and a behavioral impact (assessed). With both numbers, you can answer "if I need to cut 200 tokens from this context, which instructions should I remove?" The context equivalent of tree-shaking.
-6. **Online profiling** with shadow agents running ablated variants alongside production. Continuous attribution without blocking users.
+3. **Multi-dimensional scoring**: score each instruction on compliance rate, behavioral impact, and conflict severity independently. This would let users filter by "followed but low-impact" vs. "followed and critical," enabling more nuanced cleanup decisions.
+4. **Broader context sources**: profile system prompts, tool descriptions, memory stores, skills. The unit of analysis is always "a piece of text that was present when the agent ran."
+5. **Central trace API**: rather than running the pipeline locally, expose a central service where agents log their traces. The service harvests traces continuously, runs attribution in the background, and surfaces findings to teams without requiring them to run the pipeline themselves. This is the natural deployment model for organizations with many agents.
+6. **Prompt optimization**: close the loop by automatically rewriting underperforming instructions, re-running the task suite against the proposed change, and accepting the rewrite only if the suite passes. The assessor already proposes replacements for "update" verdicts; automating the validation step is what's missing.
+7. **Context budgeting**: each instruction has a token cost (measured) and a behavioral impact (assessed). With both numbers, you can answer "if I need to cut 200 tokens from this context, which instructions should I remove?" The context equivalent of tree-shaking.
