@@ -12,9 +12,11 @@ This is a real problem I run into regularly. What I need is a data-driven way to
 
 ## What makes this non-obvious
 
-The key insight is that the evidence already exists. Every agent session produces a detailed trace: files read, code written, commands run, decisions made. Each trace is implicitly an evaluation of every piece of context the agent was given. Teams produce this data continuously and throw it away.
+The data is already there. Every agent session produces a detailed trace: files read, code written, commands run, decisions made. Each trace is implicitly an evaluation of every piece of context the agent was given. Anyone running agents, whether individually or across a company, is producing this data continuously and throwing it away.
 
-Context Profiler treats agent traces as evaluation data. Instead of building custom eval harnesses or requiring white-box model access, it uses the behavioral record that agents already produce to attribute outcomes back to specific context.
+Building a passive system that watches agent traces and optimizes the context behind them is surprisingly accessible. It does not require white-box model access, custom eval harnesses, or changes to the agent itself. Yet almost nobody does this. Context files grow monotonically because there is no feedback loop telling you what is working.
+
+Context Profiler is a prototype of that feedback loop. It treats agent traces as evaluation data and attributes outcomes back to specific instructions. The cost profile also works in its favor: as inference gets cheaper, running ablation variants (re-run the same task with one instruction removed) becomes a routine cost rather than an expensive experiment. A system like this gets more practical over time, not less.
 
 The second non-obvious piece is using ablation as a black-box causal test. Remove one instruction, re-run the same task, compare traces. This gives you directional causal evidence ("removing this instruction changed behavior") without needing logprobs, attention weights, or any model internals. It works with any model behind any API.
 
