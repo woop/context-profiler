@@ -23,19 +23,19 @@ A prototype that profiles CLAUDE.md instructions against real agent traces to de
 
 ## What this prototype does
 
-The prototype runs against a demo Python repo (csv-stats) with a 9-instruction CLAUDE.md constructed to exercise each verdict path (instructions that are followed, instructions that reference things that don't exist, instructions with conflicting clauses). This is a controlled test environment with known ground truth, not an evaluation against unknown inputs. Four tasks exercise different instruction surfaces:
+The prototype runs against a demo Python repo (csv-stats) with a 9-instruction CLAUDE.md constructed to exercise multiple verdict signals (instructions that are followed, instructions that reference things that don't exist, instructions with conflicting clauses). This is a controlled test environment with known ground truth, not an evaluation against unknown inputs. Four tasks exercise different instruction surfaces:
 
 - **add-tsv-loader**: add a TSV loading function (exercises type hints, pathlib, logging, pytest)
 - **use-load-error**: refactor to domain-specific exceptions (exercises error handling, testing)
 - **add-delimiter-flag**: add a CLI flag (exercises style, CLI conventions, testing)
 - **add-median-stat**: add median calculation to reports (exercises style, testing, report module)
 
-Each task is run twice with full context (control pair), and every instruction is ablated once (removed, same task re-run). Results across 8 full-context runs and 7 ablation runs: keep 4, update 2, remove 2, add_test 1.
+Each task is run twice with full context (control pair), and each instruction is ablated once against a selected task (removed, same task re-run). Results across 8 full-context runs and 9 ablation runs: keep 6, update 1, remove 2, add_test 0.
 
 ## Limitations
 
-- **n=1 ablations**: trace-based verdicts draw on 8 full-context runs (4 tasks, each run twice as a control pair). Ablations are n=1 per instruction: each instruction was removed once against one task. Control pairs establish a noise floor, but meaningful causal claims would require multiple seeds per ablation averaged across tasks.
-- **Planted demo**: the demo CLAUDE.md is authored to exercise each verdict path. The profiler is confirming known ground truth, not discovering unknowns. Running against a real, uncontrolled CLAUDE.md is the next validation step.
+- **n=1 ablations**: trace-based verdicts draw on 8 full-context runs (4 tasks, each run twice as a control pair). Ablations are n=1 per instruction/task pairing: each instruction was removed once against one selected task. Control pairs establish a noise floor, but meaningful causal claims would require multiple seeds per ablation averaged across tasks.
+- **Planted demo**: the demo CLAUDE.md is authored to exercise multiple profiler signals. The profiler is confirming known ground truth, not discovering unknowns. Running against a real, uncontrolled CLAUDE.md is the next validation step.
 - **Single context source**: the prototype profiles one CLAUDE.md file. System prompts, skills, tool descriptions, memory entries, and retrieved documents are all context that accumulates the same way but is not handled here.
 - **LLM-as-judge, not measurement**: verdicts are qualitative judgments from a single Opus call, not quantitative scores. There is no inter-rater reliability, no rubric calibration, and no ground-truth labels to evaluate assessor accuracy against.
 - **Offline only**: the pipeline runs against pre-defined tasks. It does not integrate with live agent sessions or continuous profiling.
@@ -119,7 +119,7 @@ The assessor (Opus) receives all instructions, all traces (full and ablated), an
 <details>
 <summary>What does the ablation actually prove?</summary>
 
-An ablation removes one instruction from the CLAUDE.md and re-runs the same task. If the agent's behavior changes (e.g., stops running ruff), the instruction is causally necessary for that behavior. If the behavior is identical (e.g., the agent still uses logging.error), the instruction is redundant with other signals (codebase convention, task prompt, model priors). Ablation is stronger evidence than trace correlation, but it is still n=1 per instruction per task. A production system would ablate across many tasks and average.
+An ablation removes one instruction from the CLAUDE.md and re-runs the same task. If the agent's behavior changes in that run (e.g., stops running ruff), that is evidence that the removed instruction influenced behavior under those conditions. If the behavior is identical in that run (e.g., the agent still uses logging.error), that suggests the instruction may be redundant with other signals such as codebase convention, task prompt, or model priors. Ablation is stronger evidence than trace correlation, but in this prototype it is still n=1 per instruction/task pairing. A production system would ablate across many tasks and seeds before making stronger causal claims.
 </details>
 
 <details>

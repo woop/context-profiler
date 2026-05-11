@@ -86,6 +86,20 @@
       "result_path": ".profiler/runs/tasks/add-tsv-loader/run-007/output/result.json"
     },
     {
+      "task_id": "add-tsv-loader",
+      "run_id": "run-008",
+      "context_variant": "ablate:instr-d177f6a3",
+      "events_path": ".profiler/runs/tasks/add-tsv-loader/run-008/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-tsv-loader/run-008/output/result.json"
+    },
+    {
+      "task_id": "add-tsv-loader",
+      "run_id": "run-009",
+      "context_variant": "ablate:instr-40424d2c",
+      "events_path": ".profiler/runs/tasks/add-tsv-loader/run-009/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-tsv-loader/run-009/output/result.json"
+    },
+    {
       "task_id": "use-load-error",
       "run_id": "run-001",
       "context_variant": "full",

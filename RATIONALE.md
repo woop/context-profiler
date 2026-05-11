@@ -14,7 +14,7 @@ The insight that made this buildable in a few hours is that the evidence already
 
 ## Approaches considered and eliminated
 
-I surveyed five method families and considered five concrete prototypes before selecting the approach:
+I surveyed several method families and concrete prototype directions before selecting the approach:
 
 **ContextCite-style sparse surrogates** (P3). Train a lightweight linear model that approximates per-token attribution by masking context spans. Produces fine-grained attribution scores. Eliminated because it requires white-box model access (logprobs at minimum, ideally activation access), which rules out API-only deployments. Most teams using Claude, GPT, or similar models cannot use this.
 
@@ -24,7 +24,7 @@ I surveyed five method families and considered five concrete prototypes before s
 
 ## Approaches chosen
 
-**LLM-as-judge over traces** is the baseline. An assessor model reads the agent's execution trace alongside each instruction and judges whether the instruction was followed, ignored, or contradicted. This is the most tractable entry point: most teams already have traces (or can start collecting them), and a single LLM call per instruction produces actionable verdicts. No special model access, no logprobs, no white-box techniques required.
+**LLM-as-judge over traces** is the baseline. An assessor model reads the agent's execution traces alongside the extracted instructions and judges whether each instruction was followed, ignored, or contradicted. This is the most tractable entry point: most teams already have traces (or can start collecting them), and a single assessment pass produces actionable verdicts for the whole context file. No special model access, no logprobs, no white-box techniques required.
 
 **Targeted ablation** is the extension. Remove one instruction from the context, re-run the same task, compare the traces. This produces directional causal evidence rather than correlation. It costs one additional agent run per instruction tested, which is affordable for teams already running agents frequently. I chose ablation over logprob attribution and attention analysis because it works with any model behind any API.
 
@@ -38,13 +38,13 @@ I surveyed five method families and considered five concrete prototypes before s
 
 - **Control pairs for ablation**. Each task is run twice with full context to establish a noise floor. Without this, any behavioral difference in an ablation run could be model nondeterminism rather than a causal effect of removing the instruction.
 
-- **Synthetic demo with known ground truth**. The demo CLAUDE.md is constructed to exercise each verdict path. This is a controlled test environment, not an evaluation against unknown inputs. I validated the methodology against known answers before pointing it at unknown ones.
+- **Synthetic demo with known ground truth**. The demo CLAUDE.md is constructed to exercise multiple profiler signals. This is a controlled test environment, not an evaluation against unknown inputs. I validated the methodology against known answers before pointing it at unknown ones.
 
 ## Tradeoffs
 
 - **LLM-as-judge vs. deterministic checkers**: verdicts are qualitative judgments, not quantitative measurements. No inter-rater reliability or rubric calibration. I chose this because it handles the full range of instruction types without needing per-instruction checker logic.
 
-- **n=1 ablations vs. statistical rigor**: each instruction is ablated once against one task. Meaningful causal claims would require multiple seeds averaged across tasks. I chose full coverage (9/9 instructions ablated) over depth (many seeds on a few instructions) because coverage demonstrates the methodology more clearly for a prototype.
+- **n=1 ablations vs. statistical rigor**: each instruction is ablated once against one selected task. Meaningful causal claims would require multiple seeds averaged across tasks. I chose full instruction coverage over depth (many seeds on a few instructions) because coverage demonstrates the methodology more clearly for a prototype.
 
 - **Offline pipeline vs. online profiling**: the pipeline runs against pre-defined tasks, not live sessions. I chose offline because it's self-contained and reproducible for evaluation.
 

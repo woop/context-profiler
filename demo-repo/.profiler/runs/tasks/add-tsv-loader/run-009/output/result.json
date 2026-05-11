@@ -1,0 +1,13 @@
+{
+  "task_id": "add-tsv-loader",
+  "run_id": "run-009",
+  "context_variant": "ablate:instr-40424d2c",
+  "model": "claude-sonnet-4-6",
+  "max_turns": 15,
+  "started_at": "2026-05-11T00:46:25Z",
+  "elapsed_seconds": 23.27,
+  "total_events": 20,
+  "result_text": "All 15 tests pass. Here's a summary of what exists and what each piece does:\n\n**`src/csvstats/loader.py` \u2014 `load_tsv`**\n```python\ndef load_tsv(path: Path) -> list[dict[str, str]]:\n    \"\"\"Read all rows from a TSV file as a list of dicts keyed by header.\"\"\"\n    if not path.exists():\n        logger.error(\"tsv not found at %s\", path, exc_info=True)\n        raise LoadError(path)\n    with path.open(newline=\"\") as fh:\n        reader = csv.DictReader(fh, delimiter=\"\\t\")\n        return list(reader)\n```\n-",
+  "workspace": ".profiler/runs/tasks/add-tsv-loader/run-009/workspace",
+  "events_path": ".profiler/runs/tasks/add-tsv-loader/run-009/output/sdk-events.jsonl"
+}

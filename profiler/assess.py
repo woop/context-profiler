@@ -30,12 +30,14 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 MODEL = "claude-opus-4-7"
+ABLATE_VARIANT_RE = re.compile(r"ablate:(instr-[0-9a-f]{8})")
 
 ASSESS_TOOL = {
     "name": "emit_assessments",
@@ -258,6 +260,55 @@ def _ev_id(idx: int) -> str:
     return f"ev-{idx:06x}"
 
 
+def _evidence_session(
+    evidence: dict[str, Any],
+    instruction_id: str,
+    sessions: list[dict[str, Any]],
+) -> tuple[str, str]:
+    """Return the context variant and trace path for one evidence item."""
+    if not sessions:
+        return "full", ""
+
+    full_sessions = [s for s in sessions if s["context_variant"] == "full"]
+
+    if evidence["kind"] == "ablation":
+        ablation_sessions = [
+            s for s in sessions if s["context_variant"] != "full"
+        ]
+        expected_variant = f"ablate:{instruction_id}"
+        evidence_text = " ".join(
+            str(evidence.get(k, ""))
+            for k in ("label", "excerpt", "explanation")
+        )
+        mentioned_variants = ABLATE_VARIANT_RE.findall(evidence_text)
+        candidate_variants = [expected_variant] + [
+            f"ablate:{instr_id}"
+            for instr_id in mentioned_variants
+            if f"ablate:{instr_id}" != expected_variant
+        ]
+
+        for variant in candidate_variants:
+            match = next(
+                (
+                    s for s in ablation_sessions
+                    if s["context_variant"] == variant
+                ),
+                None,
+            )
+            if match:
+                return match["context_variant"], match["events_path"]
+
+        if ablation_sessions:
+            return (
+                ablation_sessions[0]["context_variant"],
+                ablation_sessions[0]["events_path"],
+            )
+
+    if full_sessions:
+        return "full", full_sessions[0]["events_path"]
+    return sessions[0]["context_variant"], sessions[0]["events_path"]
+
+
 def main(argv: list[str] | None = None) -> int:
     here = Path(__file__).resolve()
     repo_root_default = here.parent.parent
@@ -418,22 +469,9 @@ def main(argv: list[str] | None = None) -> int:
         evidence_items = []
         for ev in assessment.get("evidence", []):
             ev_counter += 1
-            ev_variant = "full"
-            ev_source = ""
-            if sessions:
-                ablation_sessions = [
-                    s for s in sessions if s["context_variant"] != "full"
-                ]
-                full_sessions = [
-                    s for s in sessions if s["context_variant"] == "full"
-                ]
-                if ev["kind"] == "ablation" and ablation_sessions:
-                    ev_variant = ablation_sessions[0]["context_variant"]
-                    ev_source = ablation_sessions[0]["events_path"]
-                elif full_sessions:
-                    ev_source = full_sessions[0]["events_path"]
-                else:
-                    ev_source = sessions[0]["events_path"]
+            ev_variant, ev_source = _evidence_session(
+                ev, ins["id"], sessions
+            )
             evidence_items.append(
                 {
                     "id": _ev_id(ev_counter),
