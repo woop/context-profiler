@@ -32,6 +32,10 @@ The methodology applies to any injected context, but CLAUDE.md is the right star
 
 **Static conflict/redundancy linting**. Use an LLM to analyze context for internal contradictions without running any tasks. No behavioral evidence: it can catch syntactic conflicts ("use Tailwind" vs "use CSS modules") but cannot tell you whether either instruction actually influences agent behavior. A static linter would flag dead instructions as conflicting when the real finding is that neither one matters.
 
+**Inline citation / self-reported attribution**. Modify the system prompt so the agent annotates each action with which CLAUDE.md instruction it was following. Cheap, no extra runs. Eliminated because agents are unreliable narrators of their own behavior: they rationalize citations post-hoc, can't surface instructions they silently ignored, and the citation prompt itself contaminates the trace under measurement.
+
+**Shapley-value contribution analysis** ([HiveMind](https://arxiv.org/abs/2510.04317)-style). Treat each instruction as a coalition member and compute marginal contributions across present/absent subsets. Eliminated because of combinatorial cost. For 9 instructions, full Shapley needs 2^9 = 512 context variants per task; even DAG-style approximations need an order of magnitude more runs than single-instruction ablation. The methodology only pays off when interaction effects between instructions dominate, which is unproven for CLAUDE.md-sized contexts. Single-instruction ablation captures most of the signal at a fraction of the cost.
+
 ## Methodology
 
 **LLM-as-judge over traces** is the baseline. An assessor model reads the agent's execution traces alongside each extracted instruction and judges whether it was followed, ignored, or contradicted. Most teams already have traces (or can start collecting them), and a single assessment pass produces actionable verdicts for the full context file. No special model access required.
