@@ -1,12 +1,14 @@
 # Design Rationale
 
 **Theme**: 4 (Evaluation & Data Quality)
-**Time spent**: ~4 hours
+
+**Time spent**: ~5 hours
+
 **Live demo**: https://context-profiler.pages.dev
 
 ## Why this theme and this specific approach
 
-AI agents accumulate context from many sources: system prompts, CLAUDE.md files, skills, tool descriptions, memory entries, retrieved documents. Each piece was added because it solved a problem at some point. Over time, nobody remembers why a given instruction is there, whether the agent actually follows it, or whether it contradicts something added since. So it stays. Everything stays.
+AI agents accumulate context from many sources: system prompts, CLAUDE.md files, skills, tool descriptions, memory entries, retrieved documents. Each piece was added because it solved a problem at some point. Over time, nobody remembers why a given instruction is there, whether the agent actually follows it, or whether it contradicts something added since. So it stays.
 
 This is a real problem I run into regularly. What I need is a data-driven way to know which context is doing work and which can be cleaned up. Not a linter that checks syntax, but something that looks at what the agent actually did and tells me which instructions influenced behavior, which are dead, and which are fighting each other.
 
@@ -18,7 +20,7 @@ Building a passive system that watches agent traces and optimizes the context be
 
 Context Profiler is a prototype of that feedback loop. It treats agent traces as evaluation data and attributes outcomes back to specific instructions. The cost profile also works in its favor: as inference gets cheaper, running ablation variants (re-run the same task with one instruction removed) becomes a routine cost rather than an expensive experiment. A system like this gets more practical over time, not less.
 
-The second non-obvious piece is using ablation as a black-box causal test. Remove one instruction, re-run the same task, compare traces. This gives you directional causal evidence ("removing this instruction changed behavior") without needing logprobs, attention weights, or any model internals. It works with any model behind any API.
+The second non-obvious piece is using ablation as a black-box directional causal test. Remove one instruction, re-run the same task, compare traces. This gives you directional evidence ("removing this instruction changed behavior") without needing logprobs, attention weights, or any model internals. It works with any model behind any API.
 
 ## Why CLAUDE.md as the prototype scope
 
@@ -26,21 +28,21 @@ The methodology applies to any injected context, but CLAUDE.md is the right star
 
 ## Approaches eliminated
 
-**[ContextCite](https://arxiv.org/abs/2409.00729)-style sparse surrogates**. Train a lightweight linear model that approximates per-token attribution by masking context spans. Produces fine-grained attribution scores, but requires white-box model access (logprobs at minimum). Most teams using Claude, GPT, or similar models via API cannot use this.
+**[ContextCite](https://arxiv.org/abs/2409.00729)-style sparse surrogates** train a lightweight linear model that approximates per-token attribution by masking context spans. This produces fine-grained attribution scores, but requires white-box model access, logprobs at minimum. Most teams using Claude, GPT, or similar models via API cannot use this.
 
-**Deterministic rule auditors**. Build per-instruction compliance checkers (regex, AST checks, test harnesses) that score each rule against agent output. Requires custom checker logic per instruction type. The variety of instructions in real context files (style rules, deployment procedures, security guidance, workflow conventions) makes maintenance cost exceed value.
+**Deterministic rule auditors** build per-instruction compliance checkers, such as regexes, AST checks, or test harnesses, that score each rule against agent output. This requires custom checker logic per instruction type. The variety of instructions in real context files, including style rules, deployment procedures, security guidance, and workflow conventions, makes the maintenance cost exceed the value.
 
-**Static conflict/redundancy linting**. Use an LLM to analyze context for internal contradictions without running any tasks. No behavioral evidence: it can catch syntactic conflicts ("use Tailwind" vs "use CSS modules") but cannot tell you whether either instruction actually influences agent behavior. A static linter would flag dead instructions as conflicting when the real finding is that neither one matters.
+**Static conflict/redundancy linting** uses an LLM to analyze context for internal contradictions without running any tasks. It has no behavioral evidence: it can catch syntactic conflicts ("use Tailwind" vs "use CSS modules") but cannot tell you whether either instruction actually influences agent behavior. A static linter would flag dead instructions as conflicting when the real finding is that neither one matters.
 
-**Inline citation / self-reported attribution**. Modify the system prompt so the agent annotates each action with which CLAUDE.md instruction it was following. Cheap, no extra runs. Eliminated because agents are unreliable narrators of their own behavior: they rationalize citations post-hoc, can't surface instructions they silently ignored, and the citation prompt itself contaminates the trace under measurement.
+**Inline citation / self-reported attribution** modifies the system prompt so the agent annotates each action with which CLAUDE.md instruction it was following. This is cheap and requires no extra runs, but agents are unreliable narrators of their own behavior: they rationalize citations post-hoc, can't surface instructions they silently ignored, and the citation prompt itself contaminates the trace under measurement.
 
-**Shapley-value contribution analysis** ([HiveMind](https://arxiv.org/abs/2510.04317)-style). Treat each instruction as a coalition member and compute marginal contributions across present/absent subsets. Eliminated because of combinatorial cost. For 9 instructions, full Shapley needs 2^9 = 512 context variants per task; even DAG-style approximations need an order of magnitude more runs than single-instruction ablation. The methodology only pays off when interaction effects between instructions dominate, which is unproven for CLAUDE.md-sized contexts. Single-instruction ablation captures most of the signal at a fraction of the cost.
+**Shapley-value contribution analysis** ([HiveMind](https://arxiv.org/abs/2510.04317)-style) treats each instruction as a coalition member and computes marginal contributions across present/absent subsets. This was eliminated because of combinatorial cost. For 9 instructions, full Shapley needs 2^9 = 512 context variants per task; even DAG-style approximations need an order of magnitude more runs than single-instruction ablation. The methodology only pays off when interaction effects between instructions dominate, which is unproven for CLAUDE.md-sized contexts. Single-instruction ablation captures most of the signal at a fraction of the cost.
 
 ## Methodology
 
 **LLM-as-judge over traces** is the baseline. An assessor model reads the agent's execution traces alongside each extracted instruction and judges whether it was followed, ignored, or contradicted. Most teams already have traces (or can start collecting them), and a single assessment pass produces actionable verdicts for the full context file. No special model access required.
 
-**Targeted ablation** is the causal extension. Remove one instruction from the context, re-run the same task, compare traces. This produces directional evidence rather than correlation. It costs one additional agent run per instruction tested.
+**Targeted ablation** is the directional causal extension. Remove one instruction from the context, re-run the same task, compare traces. This produces directional evidence rather than correlation. It costs one additional agent run per instruction tested.
 
 **Control pairs** establish a noise floor for ablation. Each task is run twice with full context before any ablation runs. Without this, behavioral differences in an ablation run could be model nondeterminism rather than a causal effect of removing the instruction.
 
@@ -48,40 +50,52 @@ The prototype runs 4 tasks (each twice as a control pair) and ablates all 9 inst
 
 ## Key design decisions
 
-- **Document-first review UI**. The context file itself is the canvas: instructions are highlighted inline by verdict, and clicking a span opens evidence and recommended actions in a popover. This keeps the user grounded in the original document instead of forcing them into an abstract table of findings.
+**CLAUDE.md as the wedge**. Everyone running Claude Code has one, everyone has the problem of it growing unchecked, and it's the most legible context source (plain text, in the repo, paragraph-sized). Starting here makes the tool useful on day one against a problem people already feel, and gives a natural surface to expand from to harder context sources (system prompts, tools, memory) as users pull for more.
 
-- **Trace-based profiling over static analysis**. Static analysis can find syntactic issues but cannot tell you whether an instruction influences behavior. Trace-based profiling grounds every verdict in what the agent actually did.
+**Document-first review UI**. The context file itself is the canvas: instructions are highlighted inline by verdict, and clicking a span opens evidence and recommended actions in a popover. This keeps the user grounded in the original document instead of forcing them into an abstract table of findings.
 
-- **Black-box ablation over logprob attribution**. Ablation works with any model behind any API. Logprob-based attribution requires white-box access and doesn't generalize across model providers.
+**Trace-based profiling over static analysis**. Static analysis can find syntactic issues but cannot tell you whether an instruction influences behavior. Trace-based profiling grounds every verdict in what the agent actually did.
+
+**Black-box ablation over logprob attribution**. Ablation works with any model behind any API. Logprob-based attribution requires white-box access and doesn't generalize across model providers.
 
 ## Tradeoffs
 
-- **LLM-as-judge vs. deterministic checkers**: verdicts are qualitative judgments, not quantitative measurements. No inter-rater reliability or rubric calibration. I chose this because it handles the full range of instruction types without per-instruction checker logic. Deterministic checkers would be cheaper per evaluation, but the development cost of writing and maintaining a checker per instruction type outweighs the inference cost of an LLM call, especially as inference gets cheaper.
+**LLM-as-judge vs. deterministic checkers** means verdicts are qualitative judgments, not quantitative measurements. There is no inter-rater reliability or rubric calibration. I chose this because it handles the full range of instruction types without per-instruction checker logic. Deterministic checkers would be cheaper per evaluation, but the development cost of writing and maintaining a checker per instruction type outweighs the inference cost of an LLM call, especially as inference gets cheaper.
 
-- **Single verdict vs. multi-dimensional scoring**: the original design explored scoring each instruction on multiple dimensions (compliance rate, behavioral impact, conflict severity). The prototype collapses these into a single verdict (keep/update/remove/add_test) with a status and optional flags. This is simpler to build and display, but loses the ability to say "this instruction is followed but has low impact" vs. "this instruction is followed and is critical."
+**Single verdict vs. multi-dimensional scoring** collapses the original idea of separate compliance, behavioral impact, and conflict severity scores into a single verdict (keep/update/remove/add_test) with a status and optional flags. This is simpler to build and display, but loses the ability to say "this instruction is followed but has low impact" vs. "this instruction is followed and is critical."
 
-- **n=1 ablations vs. statistical rigor**: each instruction is ablated once against one selected task. Meaningful causal claims would require multiple seeds averaged across tasks. I chose full instruction coverage (9/9) over depth because coverage demonstrates the methodology more clearly for a prototype.
+**n=1 ablations vs. statistical rigor** means each instruction is ablated once against one selected task. Strong causal claims would require multiple seeds averaged across tasks. I chose full instruction coverage (9/9) over depth because coverage demonstrates the methodology more clearly for a prototype.
 
-- **Offline pipeline vs. online profiling**: the pipeline runs against pre-defined tasks, not live sessions. I chose offline because it's self-contained and reproducible for evaluation.
+**Offline pipeline vs. online profiling** means the pipeline runs against pre-defined tasks, not live sessions. I chose offline because it's self-contained and reproducible for evaluation.
 
-- **Synthetic demo vs. real-world validation**: the demo CLAUDE.md is constructed with known ground truth. The profiler is confirming known answers, not discovering unknowns. This validates the machinery; running against a real CLAUDE.md would validate the approach.
+**Synthetic demo vs. real-world validation** means the demo CLAUDE.md is constructed with known ground truth. The profiler is confirming known answers, not discovering unknowns. This validates the machinery, but not yet the approach on messy, uncontrolled context.
 
 ## Limitations
 
-- **Single context source**: the prototype profiles one CLAUDE.md file. System prompts, skills, tool descriptions, memory entries, and retrieved documents all accumulate the same way but are not handled here.
-- **No ground-truth labels**: verdicts are qualitative judgments from a single LLM call. There is no inter-rater reliability, no rubric calibration, and no labeled dataset to evaluate assessor accuracy against.
-- **Synthetic demo only**: the demo CLAUDE.md is constructed with known ground truth. The profiler has not been validated against a real, uncontrolled CLAUDE.md.
-- **Offline only**: the pipeline runs against pre-defined tasks, not live agent sessions. There is no continuous profiling or integration with production workflows.
-- **No automated remediation**: the UI shows recommended actions but does not apply them to the source file.
+**Single context source**. The prototype profiles one CLAUDE.md file. System prompts, skills, tool descriptions, memory entries, and retrieved documents all accumulate the same way but are not handled here.
+
+**No ground-truth labels**. Verdicts are qualitative judgments from a single LLM call. There is no inter-rater reliability, no rubric calibration, and no labeled dataset to evaluate assessor accuracy against.
+
+**Synthetic demo only**. The demo CLAUDE.md is constructed with known ground truth. The profiler has not been validated against messy, uncontrolled context.
+
+**Offline only**. The pipeline runs against pre-defined tasks, not live agent sessions. There is no continuous profiling or integration with production workflows.
+
+**Run-matrix orchestration is not productized**. The submitted demo includes a committed 17-run artifact set (8 baseline traces plus 9 single-instruction ablations), and `--replay` rebuilds the review from those artifacts. The v0 CLI does not yet regenerate that exact matrix from scratch as one idempotent command.
+
+**No automated remediation**. The UI shows recommended actions but does not apply them to the source file.
 
 ## How I would extend this
 
-With more time, in order of impact:
+With more time, I would extend this by:
 
-1. **Run against a real CLAUDE.md** from an uncontrolled project. The synthetic demo validates the machinery. Real inputs validate the approach.
-2. **Multi-seed ablations** (N=5 per instruction per task) with agreement rates. "Removing X changed behavior in 4/5 runs" is a meaningful claim.
-3. **Multi-dimensional scoring**: score each instruction on compliance rate, behavioral impact, and conflict severity independently. This would let users filter by "followed but low-impact" vs. "followed and critical," enabling more nuanced cleanup decisions.
-4. **Broader context sources**: profile system prompts, tool descriptions, memory stores, skills. The unit of analysis is always "a piece of text that was present when the agent ran."
-5. **Central trace API**: rather than running the pipeline locally, expose a central service where agents log their traces. The service harvests traces continuously, runs attribution in the background, and surfaces findings to teams without requiring them to run the pipeline themselves. This is the natural deployment model for organizations with many agents.
-6. **Prompt optimization**: close the loop by automatically rewriting underperforming instructions, re-running the task suite against the proposed change, and accepting the rewrite only if the suite passes. The assessor already proposes replacements for "update" verdicts; automating the validation step is what's missing.
-7. **Context budgeting**: each instruction has a token cost (measured) and a behavioral impact (assessed). With both numbers, you can answer "if I need to cut 200 tokens from this context, which instructions should I remove?" The context equivalent of tree-shaking.
+**Broader context sources** would expand profiling beyond CLAUDE.md to system prompts, tool descriptions, memory stores, skills, and retrieved documents. The unit of analysis is always "a piece of text that was present when the agent ran."
+
+**Central trace API** would replace the local-only pipeline with a service where agents log traces continuously. The service could run attribution in the background and surface findings to teams without requiring each project to run the pipeline itself. This is the natural deployment model for organizations with many agents.
+
+**Multi-seed ablations** would run N=5 per instruction per task and report agreement rates. "Removing X changed behavior in 4/5 runs" is a more meaningful claim than a single observed difference.
+
+**Multi-dimensional scoring** would score each instruction on compliance rate, behavioral impact, and conflict severity independently. This would let users filter by "followed but low-impact" vs. "followed and critical," enabling more nuanced cleanup decisions.
+
+**Prompt optimization** would close the loop by automatically rewriting underperforming instructions, re-running the task suite against the proposed change, and accepting the rewrite only if the suite passes. The assessor already proposes replacements for "update" verdicts; automating the validation step is what's missing.
+
+**Context budgeting** would combine each instruction's token cost with its assessed behavioral impact. With both numbers, you can answer "if I need to cut 200 tokens from this context, which instructions should I remove?" The context equivalent of tree-shaking.
