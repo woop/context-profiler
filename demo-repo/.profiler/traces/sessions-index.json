@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "sessions": [
+    {
+      "task_id": "add-delimiter-flag",
+      "run_id": "run-001",
+      "context_variant": "full",
+      "events_path": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/result.json"
+    },
+    {
+      "task_id": "add-delimiter-flag",
+      "run_id": "run-002",
+      "context_variant": "ablate:instr-dd63c11a",
+      "events_path": ".profiler/runs/tasks/add-delimiter-flag/run-002/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-delimiter-flag/run-002/output/result.json"
+    },
+    {
+      "task_id": "add-delimiter-flag",
+      "run_id": "run-003",
+      "context_variant": "full",
+      "events_path": ".profiler/runs/tasks/add-delimiter-flag/run-003/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-delimiter-flag/run-003/output/result.json"
+    },
+    {
+      "task_id": "add-median-stat",
+      "run_id": "run-001",
+      "context_variant": "full",
+      "events_path": ".profiler/runs/tasks/add-median-stat/run-001/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-median-stat/run-001/output/result.json"
+    },
+    {
+      "task_id": "add-median-stat",
+      "run_id": "run-002",
+      "context_variant": "full",
+      "events_path": ".profiler/runs/tasks/add-median-stat/run-002/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-median-stat/run-002/output/result.json"
+    },
+    {
+      "task_id": "add-tsv-loader",
+      "run_id": "run-001",
+      "context_variant": "full",
+      "events_path": ".profiler/runs/tasks/add-tsv-loader/run-001/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-tsv-loader/run-001/output/result.json"
+    },
+    {
+      "task_id": "add-tsv-loader",
+      "run_id": "run-002",
+      "context_variant": "ablate:instr-cf4c5f0a",
+      "events_path": ".profiler/runs/tasks/add-tsv-loader/run-002/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-tsv-loader/run-002/output/result.json"
+    },
+    {
+      "task_id": "add-tsv-loader",
+      "run_id": "run-003",
+      "context_variant": "full",
+      "events_path": ".profiler/runs/tasks/add-tsv-loader/run-003/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-tsv-loader/run-003/output/result.json"
+    },
+    {
+      "task_id": "add-tsv-loader",
+      "run_id": "run-004",
+      "context_variant": "ablate:instr-e7179979",
+      "events_path": ".profiler/runs/tasks/add-tsv-loader/run-004/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-tsv-loader/run-004/output/result.json"
+    },
+    {
+      "task_id": "add-tsv-loader",
+      "run_id": "run-005",
+      "context_variant": "ablate:instr-8ab40701",
+      "events_path": ".profiler/runs/tasks/add-tsv-loader/run-005/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-tsv-loader/run-005/output/result.json"
+    },
+    {
+      "task_id": "add-tsv-loader",
+      "run_id": "run-006",
+      "context_variant": "ablate:instr-2973b9bf",
+      "events_path": ".profiler/runs/tasks/add-tsv-loader/run-006/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-tsv-loader/run-006/output/result.json"
+    },
+    {
+      "task_id": "add-tsv-loader",
+      "run_id": "run-007",
+      "context_variant": "ablate:instr-8a9f6c8f",
+      "events_path": ".profiler/runs/tasks/add-tsv-loader/run-007/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/add-tsv-loader/run-007/output/result.json"
+    },
+    {
+      "task_id": "use-load-error",
+      "run_id": "run-001",
+      "context_variant": "full",
+      "events_path": ".profiler/runs/tasks/use-load-error/run-001/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/use-load-error/run-001/output/result.json"
+    },
+    {
+      "task_id": "use-load-error",
+      "run_id": "run-002",
+      "context_variant": "full",
+      "events_path": ".profiler/runs/tasks/use-load-error/run-002/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/use-load-error/run-002/output/result.json"
+    },
+    {
+      "task_id": "use-load-error",
+      "run_id": "run-003",
+      "context_variant": "ablate:instr-35a85015",
+      "events_path": ".profiler/runs/tasks/use-load-error/run-003/output/sdk-events.jsonl",
+      "result_path": ".profiler/runs/tasks/use-load-error/run-003/output/result.json"
+    }
+  ]
+}

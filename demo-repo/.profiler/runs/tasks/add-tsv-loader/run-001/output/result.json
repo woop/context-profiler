@@ -1,0 +1,12 @@
+{
+  "task_id": "add-tsv-loader",
+  "run_id": "run-001",
+  "model": "claude-sonnet-4-6",
+  "max_turns": 15,
+  "started_at": "2026-05-10T21:52:49Z",
+  "elapsed_seconds": 50.67,
+  "total_events": 27,
+  "result_text": "13 tests, all green, and ruff is clean. Here's a summary of every change made:\n\n---\n\n### `src/csvstats/loader.py` \u2014 new `load_tsv` function\n\n```python\ndef load_tsv(path: Path) -> list[dict[str, str]]:\n    \"\"\"Read all rows from a TSV file as a list of dicts keyed by header.\"\"\"\n    if not path.exists():\n        logger.error(\"tsv not found at %s\", path, exc_info=True)\n        raise FileNotFoundError(path)\n    with path.open(newline=\"\") as fh:\n        reader = csv.DictReader(fh, delimiter=\"\\t\")\n    ",
+  "workspace": ".profiler/runs/tasks/add-tsv-loader/run-001/workspace",
+  "events_path": ".profiler/runs/tasks/add-tsv-loader/run-001/output/sdk-events.jsonl"
+}

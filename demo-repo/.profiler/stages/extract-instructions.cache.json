@@ -1,0 +1,10 @@
+{
+  "stage": "extract-instructions",
+  "cache_key": "0e22b1449b27be8d3eb1f30a7b662cdeafce284ed3d91ac6bd4c4b94b5b4bad1",
+  "source_hash": "sha256:3cad0351b53784a76f0b9690f5375c5a0dc5b368a85a48746a74996a43aeea7e",
+  "prompt_version": 2,
+  "model": "claude-opus-4-7",
+  "anchor_fallbacks": 0,
+  "generated_at": "2026-05-10T22:28:49Z",
+  "output_path": ".profiler/instructions/instructions.json"
+}

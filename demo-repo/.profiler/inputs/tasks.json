@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "add-tsv-loader",
+      "title": "Add TSV loading support",
+      "prompt": "Add a `load_tsv` function to `src/csvstats/loader.py` that loads tab-separated files and returns the same `list[dict[str, str]]` as `load_rows`. It should accept a `pathlib.Path`, use the csv module with `delimiter='\\t'`, and log errors the same way `load_rows` does. Add a test for it in `tests/test_loader.py` using a small TSV fixture. Run `pytest -q` to confirm everything passes."
+    },
+    {
+      "id": "use-load-error",
+      "title": "Use LoadError in loader.py",
+      "prompt": "Refactor `src/csvstats/loader.py` so that when a file is not found, it raises `LoadError` from `csvstats.errors` instead of the raw `FileNotFoundError`. Import `LoadError` at the top. Update all existing tests in `tests/test_loader.py` to expect `LoadError` instead of `FileNotFoundError`. Run `pytest -q` to confirm everything passes."
+    },
+    {
+      "id": "add-delimiter-flag",
+      "title": "Add --delimiter CLI flag",
+      "prompt": "Add a `--delimiter` flag to the CLI in `src/csvstats/cli.py` that lets the user specify a custom column delimiter (default `,`). Pass it through to `csv.DictReader` in `load_rows`. Add a test in `tests/test_loader.py` that exercises a pipe-delimited file. Run `pytest -q` to confirm everything passes."
+    },
+    {
+      "id": "add-median-stat",
+      "title": "Add median to report",
+      "prompt": "Add a `median` field to the report output for any numeric column. In `src/csvstats/report.py`, update `build_report` so that for each column whose values are all convertible to float, the summary includes the median. Add a test for it in `tests/test_report.py` using a small CSV with known numeric values. Run `pytest -q` to confirm everything passes."
+    }
+  ]
+}

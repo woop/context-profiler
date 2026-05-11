@@ -1,0 +1,50 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build deps
+        run: python -m pip install --upgrade pip build
+      - name: Build wheel
+        run: python -m build --wheel
+      - name: Publish to internal registry
+        env:
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: |
+          python -m pip install twine
+          python -m twine upload \
+            --repository-url "$INTERNAL_REGISTRY_URL" \
+            --username __token__ \
+            --password "$REGISTRY_TOKEN" \
+            dist/*.whl
+
+  rollout:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render manifests
+        run: |
+          ./scripts/render-manifests.sh \
+            --image "ghcr.io/${{ github.repository }}:${{ github.sha }}" \
+            --out rendered/
+      - name: Apply to cluster
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}
+        run: |
+          echo "$KUBECONFIG_DATA" | base64 -d > kubeconfig
+          KUBECONFIG=./kubeconfig kubectl apply -f rendered/

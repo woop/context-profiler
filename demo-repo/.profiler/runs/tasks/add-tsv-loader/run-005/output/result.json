@@ -1,0 +1,13 @@
+{
+  "task_id": "add-tsv-loader",
+  "run_id": "run-005",
+  "context_variant": "ablate:instr-8ab40701",
+  "model": "claude-sonnet-4-6",
+  "max_turns": 15,
+  "started_at": "2026-05-11T00:01:44Z",
+  "elapsed_seconds": 33.22,
+  "total_events": 26,
+  "result_text": "15/15 tests pass and `ruff check` is clean. Here is a precise account of what is in place and why each piece is shaped the way it is.\n\n---\n\n### `src/csvstats/loader.py` \u2014 `load_tsv`\n\n```python\ndef load_tsv(path: Path) -> list[dict[str, str]]:\n    \"\"\"Read all rows from a TSV file as a list of dicts keyed by header.\"\"\"\n    if not path.exists():\n        logger.error(\"tsv not found at %s\", path, exc_info=True)\n        raise LoadError(path)\n    with path.open(newline=\"\") as fh:\n        reader = csv.D",
+  "workspace": ".profiler/runs/tasks/add-tsv-loader/run-005/workspace",
+  "events_path": ".profiler/runs/tasks/add-tsv-loader/run-005/output/sdk-events.jsonl"
+}

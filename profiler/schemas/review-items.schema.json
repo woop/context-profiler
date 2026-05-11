@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-profiler/schemas/review-items.schema.json",
+  "title": "ReviewItemsArtifact",
+  "description": "Output contract between the profiler pipeline and the UI. The UI consumes this file and the source CLAUDE.md only.",
+  "type": "object",
+  "required": ["version", "source", "summary", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "source": {
+      "type": "object",
+      "required": ["repoName", "contextPath", "contextHash", "generatedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "repoName": { "type": "string", "minLength": 1 },
+        "contextPath": { "type": "string", "minLength": 1 },
+        "contextHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "totalInstructions",
+        "totalRuns",
+        "verdictCounts",
+        "statusCounts",
+        "flagCounts",
+        "estimatedTokenChange"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "totalInstructions": { "type": "integer", "minimum": 0 },
+        "totalRuns": { "type": "integer", "minimum": 0 },
+        "verdictCounts": {
+          "type": "object",
+          "required": ["keep", "update", "remove", "add_test"],
+          "additionalProperties": false,
+          "properties": {
+            "keep": { "type": "integer", "minimum": 0 },
+            "update": { "type": "integer", "minimum": 0 },
+            "remove": { "type": "integer", "minimum": 0 },
+            "add_test": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "statusCounts": {
+          "type": "object",
+          "required": ["supported", "unobserved"],
+          "additionalProperties": false,
+          "properties": {
+            "supported": { "type": "integer", "minimum": 0 },
+            "unobserved": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "flagCounts": {
+          "type": "object",
+          "required": ["conflicting", "stale"],
+          "additionalProperties": false,
+          "properties": {
+            "conflicting": { "type": "integer", "minimum": 0 },
+            "stale": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "estimatedTokenChange": { "type": "integer" }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/ReviewItem" }
+    }
+  },
+  "$defs": {
+    "ReviewItem": {
+      "type": "object",
+      "required": [
+        "id",
+        "verdict",
+        "status",
+        "flags",
+        "title",
+        "snippet",
+        "sourceFile",
+        "startOffset",
+        "endOffset",
+        "tokenCount",
+        "tokenDelta",
+        "metrics",
+        "reason",
+        "evidence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^instr-[0-9a-f]{8}$"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["keep", "update", "remove", "add_test"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["supported", "unobserved"]
+        },
+        "flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["conflicting", "stale"]
+          }
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "snippet": { "type": "string", "minLength": 1 },
+        "sourceFile": { "type": "string", "minLength": 1 },
+        "startOffset": { "type": "integer", "minimum": 0 },
+        "endOffset": { "type": "integer", "minimum": 0 },
+        "tokenCount": { "type": "integer", "minimum": 0 },
+        "tokenDelta": { "type": "integer" },
+        "metrics": {
+          "type": "object",
+          "required": ["sessionsObserved", "totalSessions", "traceEvents"],
+          "additionalProperties": false,
+          "properties": {
+            "sessionsObserved": { "type": "integer", "minimum": 0 },
+            "totalSessions": { "type": "integer", "minimum": 0 },
+            "traceEvents": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "reason": { "type": "string", "minLength": 1 },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Evidence" }
+        },
+        "proposedChange": { "$ref": "#/$defs/ProposedChange" }
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "required": ["id", "kind", "context_variant", "label", "source", "excerpt", "explanation"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^ev-[0-9a-f]{6}$" },
+        "kind": {
+          "type": "string",
+          "enum": ["trace", "absence", "conflict", "ablation"]
+        },
+        "context_variant": {
+          "type": "string",
+          "pattern": "^(full|ablate:instr-[0-9a-f]{8})$"
+        },
+        "label": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "excerpt": { "type": "string" },
+        "explanation": { "type": "string", "minLength": 1 }
+      }
+    },
+    "ProposedChange": {
+      "type": "object",
+      "required": ["kind", "rationale"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["update", "remove", "add_test"]
+        },
+        "rationale": { "type": "string", "minLength": 1 },
+        "replacement": { "type": "string" },
+        "suggestedTest": { "type": "string" }
+      }
+    }
+  }
+}

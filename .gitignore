@@ -9,4 +9,18 @@ assignment.md
 # Local agent/runtime artifacts
 .context/
 .profiler/runs/
+**/.profiler/runs/**/workspace/
+**/.profiler/runs/**/agent-home/
 *.log
+
+# Spike runtime artifacts
+profiler/spikes/**/sandbox_home/
+profiler/spikes/**/result.json
+
+# Frontend build output
+app/frontend/dist/
+
+# Python
+__pycache__/
+*.pyc
+.venv/

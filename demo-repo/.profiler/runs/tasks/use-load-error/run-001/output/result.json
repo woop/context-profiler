@@ -1,0 +1,13 @@
+{
+  "task_id": "use-load-error",
+  "run_id": "run-001",
+  "context_variant": "full",
+  "model": "claude-sonnet-4-6",
+  "max_turns": 15,
+  "started_at": "2026-05-10T22:51:49Z",
+  "elapsed_seconds": 27.33,
+  "total_events": 21,
+  "result_text": "All 8 tests pass. Here's a summary of what changed and why:\n\n**`src/csvstats/loader.py`**\n- Added `from csvstats.errors import LoadError` at the top.\n- Changed `raise FileNotFoundError(path)` \u2192 `raise LoadError(path)` so the raw built-in exception no longer escapes the module boundary. The `logger.error` call and its `exc_info=True` are left untouched \u2014 the logging convention is preserved exactly as before.\n\n**`tests/test_loader.py`**\n- Added `from csvstats.errors import LoadError`.\n- Changed `p",
+  "workspace": ".profiler/runs/tasks/use-load-error/run-001/workspace",
+  "events_path": ".profiler/runs/tasks/use-load-error/run-001/output/sdk-events.jsonl"
+}

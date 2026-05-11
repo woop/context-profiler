@@ -1,0 +1,437 @@
+{
+  "version": 1,
+  "source": {
+    "repoName": "csv-stats",
+    "contextPath": "CLAUDE.md",
+    "contextHash": "sha256:3cad0351b53784a76f0b9690f5375c5a0dc5b368a85a48746a74996a43aeea7e",
+    "generatedAt": "2026-05-11T00:04:07Z"
+  },
+  "summary": {
+    "totalInstructions": 9,
+    "totalRuns": 8,
+    "verdictCounts": {
+      "keep": 4,
+      "update": 2,
+      "remove": 2,
+      "add_test": 1
+    },
+    "statusCounts": {
+      "supported": 7,
+      "unobserved": 2
+    },
+    "flagCounts": {
+      "conflicting": 1,
+      "stale": 2
+    },
+    "estimatedTokenChange": -87
+  },
+  "items": [
+    {
+      "id": "instr-d177f6a3",
+      "verdict": "keep",
+      "status": "supported",
+      "flags": [],
+      "title": "Project layout overview",
+      "snippet": "This is the csv-stats package, a small Python utility that summarizes CSV files into JSON reports. The library lives under `src/csvstats/`, tests under `tests/`, and the CLI entry point is `csvstats`.",
+      "sourceFile": "CLAUDE.md",
+      "startOffset": 13,
+      "endOffset": 213,
+      "tokenCount": 31,
+      "tokenDelta": 0,
+      "metrics": {
+        "sessionsObserved": 8,
+        "totalSessions": 8,
+        "traceEvents": 2
+      },
+      "reason": "Repo layout matches the description: src/csvstats/, tests/, and pyproject.toml entry point. Agents consistently navigate to these paths.",
+      "evidence": [
+        {
+          "id": "ev-000001",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "layout used",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "Read: .../src/csvstats/loader.py ... Read: .../tests/test_loader.py",
+          "explanation": "Agents read code at the documented paths every run."
+        },
+        {
+          "id": "ev-000002",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "repo listing",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "src/csvstats/__init__.py, tests/test_loader.py, pyproject.toml",
+          "explanation": "Repository file listing confirms the stated layout."
+        }
+      ]
+    },
+    {
+      "id": "instr-40424d2c",
+      "verdict": "keep",
+      "status": "supported",
+      "flags": [],
+      "title": "Type hints and formatting",
+      "snippet": "Use type hints on every public function signature and prefer `pathlib.Path` over `os.path` for filesystem work. Run `ruff check` before committing; nothing should merge that hasn't been formatted.",
+      "sourceFile": "CLAUDE.md",
+      "startOffset": 215,
+      "endOffset": 411,
+      "tokenCount": 28,
+      "tokenDelta": 0,
+      "metrics": {
+        "sessionsObserved": 8,
+        "totalSessions": 8,
+        "traceEvents": 2
+      },
+      "reason": "Every run uses type hints (e.g., `path: Path`, `-> list[dict[str, str]]`), uses pathlib.Path, and runs `ruff check` before completion.",
+      "evidence": [
+        {
+          "id": "ev-000003",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "type hints + Path",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "def load_rows(path: Path, delimiter: str = \",\") -> list[dict[str, str]]:",
+          "explanation": "Public function uses type hints and Path."
+        },
+        {
+          "id": "ev-000004",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "ruff invoked",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "Bash: ruff check src/ tests/",
+          "explanation": "Agent runs ruff check as instructed."
+        }
+      ]
+    },
+    {
+      "id": "instr-dd63c11a",
+      "verdict": "keep",
+      "status": "supported",
+      "flags": [],
+      "title": "Keep patches narrow and focused",
+      "snippet": "Before changing code, read the files directly relevant to the request and keep the patch as narrow as possible. Prefer the obvious fix over a generalized abstraction, and do not introduce new dependencies unless the reason is clear from the diff. If the change touches shared behavior in `src/csvstats/`, add or update a focused test.",
+      "sourceFile": "CLAUDE.md",
+      "startOffset": 413,
+      "endOffset": 747,
+      "tokenCount": 55,
+      "tokenDelta": 0,
+      "metrics": {
+        "sessionsObserved": 8,
+        "totalSessions": 8,
+        "traceEvents": 2
+      },
+      "reason": "Agents consistently read relevant files first and make narrow edits. The ablation run still behaved similarly but added a version bump that the full-context run did not, suggesting the instruction provides some restraint on scope creep.",
+      "evidence": [
+        {
+          "id": "ev-000005",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "narrow patch",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "Three narrow edits needed: 1. loader.py \u2014 add `delimiter` param ... 2. cli.py \u2014 add `--delimiter` flag ... 3. tests",
+          "explanation": "Agent explicitly plans a narrow patch."
+        },
+        {
+          "id": "ev-000006",
+          "kind": "ablation",
+          "context_variant": "ablate:instr-dd63c11a",
+          "label": "scope creep without instruction",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-002/output/sdk-events.jsonl",
+          "excerpt": "Bump the version (public behaviour changed): Edit: pyproject.toml -> version = \"0.2.0\"",
+          "explanation": "In the ablation run-002 with this instruction removed, the agent added a version bump outside the requested scope, indicating the instruction does constrain scope."
+        }
+      ]
+    },
+    {
+      "id": "instr-e7179979",
+      "verdict": "update",
+      "status": "supported",
+      "flags": [],
+      "title": "Testing conventions",
+      "snippet": "Tests live under `tests/` and use pytest. Run `pytest -q` from the repo root, and add at least one test for any new public function in `src/csvstats/` -- fixtures under `tests/fixtures/` cover the common shapes, so reach for those before inventing new inputs, and lean on property-based tests around the numeric summarizers since rounding edges are easy to miss.",
+      "sourceFile": "CLAUDE.md",
+      "startOffset": 749,
+      "endOffset": 1111,
+      "tokenCount": 59,
+      "tokenDelta": -17,
+      "metrics": {
+        "sessionsObserved": 8,
+        "totalSessions": 8,
+        "traceEvents": 2
+      },
+      "reason": "Agents use pytest, run `pytest -q`, add tests, and reuse fixtures. However, the instruction recommends property-based tests around numeric summarizers, and no run uses hypothesis or property-based tests (e.g., add-median-stat used only example-based tests). The ablation run-004 behaved identically since the work was already done.",
+      "evidence": [
+        {
+          "id": "ev-000007",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "pytest used",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "Bash: pytest -q 2>&1",
+          "explanation": "Agents run pytest -q as instructed."
+        },
+        {
+          "id": "ev-000008",
+          "kind": "absence",
+          "context_variant": "full",
+          "label": "no property tests",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "def test_median_numeric_columns() -> None: # age values [36, 54, 42] ...",
+          "explanation": "Median test is example-based; no hypothesis import or property-based testing was used despite the instruction calling for it."
+        },
+        {
+          "id": "ev-000009",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "fixtures reused",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "fixture = Path(__file__).parent / \"fixtures\" / \"sample.csv\"",
+          "explanation": "Agents reach for tests/fixtures/ as suggested."
+        }
+      ],
+      "proposedChange": {
+        "kind": "update",
+        "rationale": "The property-based testing clause is aspirational and not followed in practice; either drop it or add a hypothesis dependency and an example test to anchor the convention.",
+        "replacement": "Tests live under `tests/` and use pytest. Run `pytest -q` from the repo root, and add at least one test for any new public function in `src/csvstats/`. Fixtures under `tests/fixtures/` cover the common shapes, so reach for those before inventing new inputs."
+      }
+    },
+    {
+      "id": "instr-cf4c5f0a",
+      "verdict": "update",
+      "status": "supported",
+      "flags": [
+        "conflicting"
+      ],
+      "title": "Logging and secret handling",
+      "snippet": "Logging goes through the standard library `logging` module everywhere; library code must never call `print` directly, since `print` is reserved for CLI stdout output. When catching and logging an exception, use ERROR level with `exc_info=True` so the traceback is preserved. Separately, never log API keys, tokens, or user PII, and redact secrets out of any error message before it reaches a handler.",
+      "sourceFile": "CLAUDE.md",
+      "startOffset": 1113,
+      "endOffset": 1513,
+      "tokenCount": 62,
+      "tokenDelta": -16,
+      "metrics": {
+        "sessionsObserved": 8,
+        "totalSessions": 8,
+        "traceEvents": 2
+      },
+      "reason": "Agents use `logger.error(..., exc_info=True)` and the `logging` module as instructed. However, the ablation run (run-002 of add-tsv-loader, with this instruction removed) produced identical behavior including the `exc_info=True` pattern, suggesting the convention is already encoded in existing code. The 'print reserved for CLI stdout' clause conflicts with 'never call print directly'\u2014the exception is implicit and should be clarified. No PII/secret-handling code was exercised so that clause is unobserved.",
+      "evidence": [
+        {
+          "id": "ev-00000a",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "exc_info pattern",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "same `logger.error(\u2026, exc_info=True)` pattern on the missing-file path",
+          "explanation": "Agent describes following the exc_info convention."
+        },
+        {
+          "id": "ev-00000b",
+          "kind": "ablation",
+          "context_variant": "ablate:instr-dd63c11a",
+          "label": "redundant with codebase",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-002/output/sdk-events.jsonl",
+          "excerpt": "run-002 (ablate:instr-cf4c5f0a): same `logger.error(\u2026, exc_info=True)` pattern",
+          "explanation": "Ablation run still followed the pattern, indicating existing code teaches it."
+        },
+        {
+          "id": "ev-00000c",
+          "kind": "absence",
+          "context_variant": "full",
+          "label": "secrets clause unexercised",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "no traces touch API keys or PII",
+          "explanation": "The secrets/PII portion of the instruction had no opportunity to fire."
+        }
+      ],
+      "proposedChange": {
+        "kind": "update",
+        "rationale": "Tighten the print/logging clause and either trim or test the secrets clause.",
+        "replacement": "Logging goes through the standard library `logging` module in library code; `print` is reserved for CLI stdout in `cli.py`. When logging an exception, use ERROR level with `exc_info=True`. Never log API keys, tokens, or user PII; redact secrets before passing strings to a logger or handler."
+      }
+    },
+    {
+      "id": "instr-8ab40701",
+      "verdict": "remove",
+      "status": "unobserved",
+      "flags": [
+        "stale"
+      ],
+      "title": "Admin web UI styling",
+      "snippet": "For the optional admin web UI, prefer Tailwind utility classes for layout and CSS modules for component-scoped styles. Interactive elements must preserve aria state, visible focus rings, and non-color-only status cues.",
+      "sourceFile": "CLAUDE.md",
+      "startOffset": 1515,
+      "endOffset": 1733,
+      "tokenCount": 31,
+      "tokenDelta": -31,
+      "metrics": {
+        "sessionsObserved": 0,
+        "totalSessions": 8,
+        "traceEvents": 1
+      },
+      "reason": "There is no admin web UI in the repository \u2014 no Tailwind config, CSS modules, HTML/JS, or frontend code. The repo is a Python CLI library only. The ablation run that removed this instruction (run-005) had no behavioral impact.",
+      "evidence": [
+        {
+          "id": "ev-00000d",
+          "kind": "absence",
+          "context_variant": "full",
+          "label": "no web UI",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "src/csvstats/{__init__.py, cli.py, errors.py, loader.py, report.py}",
+          "explanation": "Repo contents are entirely Python; no admin UI exists."
+        },
+        {
+          "id": "ev-00000e",
+          "kind": "ablation",
+          "context_variant": "ablate:instr-dd63c11a",
+          "label": "no impact when removed",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-002/output/sdk-events.jsonl",
+          "excerpt": "run-005 (ablate:instr-8ab40701): 15/15 tests pass and `ruff check` is clean",
+          "explanation": "Removing the instruction produced no behavior change because nothing in the repo is governed by it."
+        }
+      ],
+      "proposedChange": {
+        "kind": "remove",
+        "rationale": "There is no admin web UI in this repository; the instruction is decorative."
+      }
+    },
+    {
+      "id": "instr-35a85015",
+      "verdict": "keep",
+      "status": "supported",
+      "flags": [],
+      "title": "Domain-specific exceptions",
+      "snippet": "Error paths in loader and report functions should raise domain-specific exceptions from `csvstats.errors` rather than letting raw `csv.Error` or `FileNotFoundError` propagate unhandled. Wrap third-party exceptions at the module boundary so callers can catch a single hierarchy.",
+      "sourceFile": "CLAUDE.md",
+      "startOffset": 1735,
+      "endOffset": 2012,
+      "tokenCount": 36,
+      "tokenDelta": 0,
+      "metrics": {
+        "sessionsObserved": 3,
+        "totalSessions": 8,
+        "traceEvents": 2
+      },
+      "reason": "Agents raise `LoadError` from `csvstats.errors` for missing files in loader.py, exactly as instructed. The ablation run (use-load-error/run-003) still made the same change because the task explicitly required it, but the instruction frames the broader convention.",
+      "evidence": [
+        {
+          "id": "ev-00000f",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "domain error used",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "Changed `raise FileNotFoundError(path)` \u2192 `raise LoadError(path)`",
+          "explanation": "Agent wraps a built-in exception in a domain-specific one at the module boundary."
+        },
+        {
+          "id": "ev-000010",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "errors module exists",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "src/csvstats/errors.py",
+          "explanation": "The errors module referenced by the instruction is present."
+        }
+      ]
+    },
+    {
+      "id": "instr-2973b9bf",
+      "verdict": "remove",
+      "status": "unobserved",
+      "flags": [
+        "stale"
+      ],
+      "title": "Deploy via Jenkins pipeline",
+      "snippet": "Deploy via the legacy Jenkins pipeline at `ci.internal/csv-stats` -- manually edit `deploy/values.yaml`, bump the chart version, and trigger the job from the dashboard.",
+      "sourceFile": "CLAUDE.md",
+      "startOffset": 2014,
+      "endOffset": 2182,
+      "tokenCount": 23,
+      "tokenDelta": -23,
+      "metrics": {
+        "sessionsObserved": 0,
+        "totalSessions": 8,
+        "traceEvents": 0
+      },
+      "reason": "There is no `deploy/values.yaml` and no Jenkins config in the repo; deployment appears to be handled by `.github/workflows/deploy.yml` per instr-8a9f6c8f, which directly contradicts this instruction. The ablation run had no effect because deployment was not exercised.",
+      "evidence": [
+        {
+          "id": "ev-000011",
+          "kind": "absence",
+          "context_variant": "full",
+          "label": "no deploy/values.yaml or Jenkinsfile",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "(repo listing has no deploy/ or Jenkinsfile)",
+          "explanation": "Referenced deployment artifacts are missing from the repo."
+        },
+        {
+          "id": "ev-000012",
+          "kind": "conflict",
+          "context_variant": "full",
+          "label": "contradicts instr-8a9f6c8f",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "tags are cut from main automatically by `.github/workflows/deploy.yml`",
+          "explanation": "Another instruction documents an automated GitHub Actions deploy, directly contradicting the manual Jenkins flow."
+        }
+      ],
+      "proposedChange": {
+        "kind": "remove",
+        "rationale": "The Jenkins flow no longer exists; deployment is handled by GitHub Actions per instr-8a9f6c8f. Remove the stale instruction to eliminate the conflict."
+      }
+    },
+    {
+      "id": "instr-8a9f6c8f",
+      "verdict": "add_test",
+      "status": "supported",
+      "flags": [],
+      "title": "Version bumps and tagging",
+      "snippet": "Bump `version` in `pyproject.toml` for any change that alters public behavior; tags are cut from main automatically by `.github/workflows/deploy.yml` once the wheel publishes, so do not push tags by hand.",
+      "sourceFile": "CLAUDE.md",
+      "startOffset": 2184,
+      "endOffset": 2388,
+      "tokenCount": 30,
+      "tokenDelta": 0,
+      "metrics": {
+        "sessionsObserved": 8,
+        "totalSessions": 8,
+        "traceEvents": 2
+      },
+      "reason": "The referenced `.github/workflows/deploy.yml` exists and `pyproject.toml` has a version field. In the ablation run for instr-dd63c11a (add-delimiter-flag/run-002), the agent bumped the version when public behavior changed, matching this instruction; the full-context run did not. Adherence depends on agent discipline; a CI check could enforce that public-API changes bump the version.",
+      "evidence": [
+        {
+          "id": "ev-000013",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "version bumped on behavior change",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "Edit: pyproject.toml -> version = \"0.2.0\" ... Bump the version (public behaviour changed)",
+          "explanation": "Agent in run-002 followed the convention."
+        },
+        {
+          "id": "ev-000014",
+          "kind": "trace",
+          "context_variant": "full",
+          "label": "anchors exist",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": ".github/workflows/deploy.yml, pyproject.toml",
+          "explanation": "Files referenced by the instruction exist in the repo."
+        },
+        {
+          "id": "ev-000015",
+          "kind": "absence",
+          "context_variant": "full",
+          "label": "inconsistent adherence",
+          "source": ".profiler/runs/tasks/add-delimiter-flag/run-001/output/sdk-events.jsonl",
+          "excerpt": "run-001 and run-003 of add-delimiter-flag did not bump version despite adding a public --delimiter flag",
+          "explanation": "Adherence to the version-bump rule is inconsistent across runs."
+        }
+      ],
+      "proposedChange": {
+        "kind": "add_test",
+        "rationale": "Version bumps for public-behavior changes are inconsistently applied. A CI gate (e.g., a workflow that requires pyproject.toml version to change when src/csvstats/*.py public APIs change) would make adherence enforceable.",
+        "suggestedTest": "Add a GitHub Actions job that diffs public function signatures in src/csvstats/ between the PR head and the base, and fails if any are added/changed without a pyproject.toml version bump."
+      }
+    }
+  ]
+}

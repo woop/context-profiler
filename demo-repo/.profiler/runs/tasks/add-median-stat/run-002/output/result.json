@@ -1,0 +1,13 @@
+{
+  "task_id": "add-median-stat",
+  "run_id": "run-002",
+  "context_variant": "full",
+  "model": "claude-sonnet-4-6",
+  "max_turns": 15,
+  "started_at": "2026-05-10T23:58:09Z",
+  "elapsed_seconds": 70.46,
+  "total_events": 29,
+  "result_text": "All 12 tests pass and ruff is clean. Here's a summary of every change made:\n\n---\n\n### `src/csvstats/report.py`\n\n| What | Why |\n|---|---|\n| `import statistics` (stdlib) | Provides `statistics.median`, no new dependency |\n| `_column_names(rows)` helper | Collects column keys in insertion order across all rows |\n| Numeric detection loop in `build_report` | Attempts `float()` on every value in each column; skips the column if any value raises `ValueError`/`TypeError` |\n| `summary[\"column_stats\"]` | ",
+  "workspace": ".profiler/runs/tasks/add-median-stat/run-002/workspace",
+  "events_path": ".profiler/runs/tasks/add-median-stat/run-002/output/sdk-events.jsonl"
+}

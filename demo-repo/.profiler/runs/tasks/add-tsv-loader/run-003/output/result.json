@@ -1,0 +1,13 @@
+{
+  "task_id": "add-tsv-loader",
+  "run_id": "run-003",
+  "context_variant": "full",
+  "model": "claude-sonnet-4-6",
+  "max_turns": 15,
+  "started_at": "2026-05-10T23:59:41Z",
+  "elapsed_seconds": 40.1,
+  "total_events": 25,
+  "result_text": "All 15 tests pass. Here's a summary of every change made:\n\n**`src/csvstats/loader.py`** \u2014 added `load_tsv` directly after `load_rows`. The two functions are intentionally parallel: same `path.exists()` guard, same `logger.error(\u2026, exc_info=True)` pattern on the missing-file path, same `path.open(newline=\"\")` + `csv.DictReader` + `list(reader)` body \u2014 the only difference is `delimiter=\"\\t\"` passed to `DictReader`.\n\n**`tests/fixtures/sample.tsv`** \u2014 a tab-separated copy of the existing `sample.csv",
+  "workspace": ".profiler/runs/tasks/add-tsv-loader/run-003/workspace",
+  "events_path": ".profiler/runs/tasks/add-tsv-loader/run-003/output/sdk-events.jsonl"
+}

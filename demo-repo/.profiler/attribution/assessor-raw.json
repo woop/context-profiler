@@ -1,0 +1,249 @@
+{
+  "assessments": [
+    {
+      "instruction_id": "instr-d177f6a3",
+      "verdict": "keep",
+      "status": "supported",
+      "flags": [],
+      "sessions_observed": 8,
+      "reason": "Repo layout matches the description: src/csvstats/, tests/, and pyproject.toml entry point. Agents consistently navigate to these paths.",
+      "evidence": [
+        {
+          "kind": "trace",
+          "label": "layout used",
+          "excerpt": "Read: .../src/csvstats/loader.py ... Read: .../tests/test_loader.py",
+          "explanation": "Agents read code at the documented paths every run."
+        },
+        {
+          "kind": "trace",
+          "label": "repo listing",
+          "excerpt": "src/csvstats/__init__.py, tests/test_loader.py, pyproject.toml",
+          "explanation": "Repository file listing confirms the stated layout."
+        }
+      ]
+    },
+    {
+      "instruction_id": "instr-40424d2c",
+      "verdict": "keep",
+      "status": "supported",
+      "flags": [],
+      "sessions_observed": 8,
+      "reason": "Every run uses type hints (e.g., `path: Path`, `-> list[dict[str, str]]`), uses pathlib.Path, and runs `ruff check` before completion.",
+      "evidence": [
+        {
+          "kind": "trace",
+          "label": "type hints + Path",
+          "excerpt": "def load_rows(path: Path, delimiter: str = \",\") -> list[dict[str, str]]:",
+          "explanation": "Public function uses type hints and Path."
+        },
+        {
+          "kind": "trace",
+          "label": "ruff invoked",
+          "excerpt": "Bash: ruff check src/ tests/",
+          "explanation": "Agent runs ruff check as instructed."
+        }
+      ]
+    },
+    {
+      "instruction_id": "instr-dd63c11a",
+      "verdict": "keep",
+      "status": "supported",
+      "flags": [],
+      "sessions_observed": 8,
+      "reason": "Agents consistently read relevant files first and make narrow edits. The ablation run still behaved similarly but added a version bump that the full-context run did not, suggesting the instruction provides some restraint on scope creep.",
+      "evidence": [
+        {
+          "kind": "trace",
+          "label": "narrow patch",
+          "excerpt": "Three narrow edits needed: 1. loader.py \u2014 add `delimiter` param ... 2. cli.py \u2014 add `--delimiter` flag ... 3. tests",
+          "explanation": "Agent explicitly plans a narrow patch."
+        },
+        {
+          "kind": "ablation",
+          "label": "scope creep without instruction",
+          "excerpt": "Bump the version (public behaviour changed): Edit: pyproject.toml -> version = \"0.2.0\"",
+          "explanation": "In the ablation run-002 with this instruction removed, the agent added a version bump outside the requested scope, indicating the instruction does constrain scope."
+        }
+      ]
+    },
+    {
+      "instruction_id": "instr-e7179979",
+      "verdict": "update",
+      "status": "supported",
+      "flags": [],
+      "sessions_observed": 8,
+      "reason": "Agents use pytest, run `pytest -q`, add tests, and reuse fixtures. However, the instruction recommends property-based tests around numeric summarizers, and no run uses hypothesis or property-based tests (e.g., add-median-stat used only example-based tests). The ablation run-004 behaved identically since the work was already done.",
+      "evidence": [
+        {
+          "kind": "trace",
+          "label": "pytest used",
+          "excerpt": "Bash: pytest -q 2>&1",
+          "explanation": "Agents run pytest -q as instructed."
+        },
+        {
+          "kind": "absence",
+          "label": "no property tests",
+          "excerpt": "def test_median_numeric_columns() -> None: # age values [36, 54, 42] ...",
+          "explanation": "Median test is example-based; no hypothesis import or property-based testing was used despite the instruction calling for it."
+        },
+        {
+          "kind": "trace",
+          "label": "fixtures reused",
+          "excerpt": "fixture = Path(__file__).parent / \"fixtures\" / \"sample.csv\"",
+          "explanation": "Agents reach for tests/fixtures/ as suggested."
+        }
+      ],
+      "proposed_change": {
+        "kind": "update",
+        "rationale": "The property-based testing clause is aspirational and not followed in practice; either drop it or add a hypothesis dependency and an example test to anchor the convention.",
+        "replacement": "Tests live under `tests/` and use pytest. Run `pytest -q` from the repo root, and add at least one test for any new public function in `src/csvstats/`. Fixtures under `tests/fixtures/` cover the common shapes, so reach for those before inventing new inputs."
+      }
+    },
+    {
+      "instruction_id": "instr-cf4c5f0a",
+      "verdict": "update",
+      "status": "supported",
+      "flags": [
+        "conflicting"
+      ],
+      "sessions_observed": 8,
+      "reason": "Agents use `logger.error(..., exc_info=True)` and the `logging` module as instructed. However, the ablation run (run-002 of add-tsv-loader, with this instruction removed) produced identical behavior including the `exc_info=True` pattern, suggesting the convention is already encoded in existing code. The 'print reserved for CLI stdout' clause conflicts with 'never call print directly'\u2014the exception is implicit and should be clarified. No PII/secret-handling code was exercised so that clause is unobserved.",
+      "evidence": [
+        {
+          "kind": "trace",
+          "label": "exc_info pattern",
+          "excerpt": "same `logger.error(\u2026, exc_info=True)` pattern on the missing-file path",
+          "explanation": "Agent describes following the exc_info convention."
+        },
+        {
+          "kind": "ablation",
+          "label": "redundant with codebase",
+          "excerpt": "run-002 (ablate:instr-cf4c5f0a): same `logger.error(\u2026, exc_info=True)` pattern",
+          "explanation": "Ablation run still followed the pattern, indicating existing code teaches it."
+        },
+        {
+          "kind": "absence",
+          "label": "secrets clause unexercised",
+          "excerpt": "no traces touch API keys or PII",
+          "explanation": "The secrets/PII portion of the instruction had no opportunity to fire."
+        }
+      ],
+      "proposed_change": {
+        "kind": "update",
+        "rationale": "Tighten the print/logging clause and either trim or test the secrets clause.",
+        "replacement": "Logging goes through the standard library `logging` module in library code; `print` is reserved for CLI stdout in `cli.py`. When logging an exception, use ERROR level with `exc_info=True`. Never log API keys, tokens, or user PII; redact secrets before passing strings to a logger or handler."
+      }
+    },
+    {
+      "instruction_id": "instr-8ab40701",
+      "verdict": "remove",
+      "status": "unobserved",
+      "flags": [
+        "stale"
+      ],
+      "sessions_observed": 0,
+      "reason": "There is no admin web UI in the repository \u2014 no Tailwind config, CSS modules, HTML/JS, or frontend code. The repo is a Python CLI library only. The ablation run that removed this instruction (run-005) had no behavioral impact.",
+      "evidence": [
+        {
+          "kind": "absence",
+          "label": "no web UI",
+          "excerpt": "src/csvstats/{__init__.py, cli.py, errors.py, loader.py, report.py}",
+          "explanation": "Repo contents are entirely Python; no admin UI exists."
+        },
+        {
+          "kind": "ablation",
+          "label": "no impact when removed",
+          "excerpt": "run-005 (ablate:instr-8ab40701): 15/15 tests pass and `ruff check` is clean",
+          "explanation": "Removing the instruction produced no behavior change because nothing in the repo is governed by it."
+        }
+      ],
+      "proposed_change": {
+        "kind": "remove",
+        "rationale": "There is no admin web UI in this repository; the instruction is decorative."
+      }
+    },
+    {
+      "instruction_id": "instr-35a85015",
+      "verdict": "keep",
+      "status": "supported",
+      "flags": [],
+      "sessions_observed": 3,
+      "reason": "Agents raise `LoadError` from `csvstats.errors` for missing files in loader.py, exactly as instructed. The ablation run (use-load-error/run-003) still made the same change because the task explicitly required it, but the instruction frames the broader convention.",
+      "evidence": [
+        {
+          "kind": "trace",
+          "label": "domain error used",
+          "excerpt": "Changed `raise FileNotFoundError(path)` \u2192 `raise LoadError(path)`",
+          "explanation": "Agent wraps a built-in exception in a domain-specific one at the module boundary."
+        },
+        {
+          "kind": "trace",
+          "label": "errors module exists",
+          "excerpt": "src/csvstats/errors.py",
+          "explanation": "The errors module referenced by the instruction is present."
+        }
+      ]
+    },
+    {
+      "instruction_id": "instr-2973b9bf",
+      "verdict": "remove",
+      "status": "unobserved",
+      "flags": [
+        "stale"
+      ],
+      "sessions_observed": 0,
+      "reason": "There is no `deploy/values.yaml` and no Jenkins config in the repo; deployment appears to be handled by `.github/workflows/deploy.yml` per instr-8a9f6c8f, which directly contradicts this instruction. The ablation run had no effect because deployment was not exercised.",
+      "evidence": [
+        {
+          "kind": "absence",
+          "label": "no deploy/values.yaml or Jenkinsfile",
+          "excerpt": "(repo listing has no deploy/ or Jenkinsfile)",
+          "explanation": "Referenced deployment artifacts are missing from the repo."
+        },
+        {
+          "kind": "conflict",
+          "label": "contradicts instr-8a9f6c8f",
+          "excerpt": "tags are cut from main automatically by `.github/workflows/deploy.yml`",
+          "explanation": "Another instruction documents an automated GitHub Actions deploy, directly contradicting the manual Jenkins flow."
+        }
+      ],
+      "proposed_change": {
+        "kind": "remove",
+        "rationale": "The Jenkins flow no longer exists; deployment is handled by GitHub Actions per instr-8a9f6c8f. Remove the stale instruction to eliminate the conflict."
+      }
+    },
+    {
+      "instruction_id": "instr-8a9f6c8f",
+      "verdict": "add_test",
+      "status": "supported",
+      "flags": [],
+      "sessions_observed": 8,
+      "reason": "The referenced `.github/workflows/deploy.yml` exists and `pyproject.toml` has a version field. In the ablation run for instr-dd63c11a (add-delimiter-flag/run-002), the agent bumped the version when public behavior changed, matching this instruction; the full-context run did not. Adherence depends on agent discipline; a CI check could enforce that public-API changes bump the version.",
+      "evidence": [
+        {
+          "kind": "trace",
+          "label": "version bumped on behavior change",
+          "excerpt": "Edit: pyproject.toml -> version = \"0.2.0\" ... Bump the version (public behaviour changed)",
+          "explanation": "Agent in run-002 followed the convention."
+        },
+        {
+          "kind": "trace",
+          "label": "anchors exist",
+          "excerpt": ".github/workflows/deploy.yml, pyproject.toml",
+          "explanation": "Files referenced by the instruction exist in the repo."
+        },
+        {
+          "kind": "absence",
+          "label": "inconsistent adherence",
+          "excerpt": "run-001 and run-003 of add-delimiter-flag did not bump version despite adding a public --delimiter flag",
+          "explanation": "Adherence to the version-bump rule is inconsistent across runs."
+        }
+      ],
+      "proposed_change": {
+        "kind": "add_test",
+        "rationale": "Version bumps for public-behavior changes are inconsistently applied. A CI gate (e.g., a workflow that requires pyproject.toml version to change when src/csvstats/*.py public APIs change) would make adherence enforceable.",
+        "suggested_test": "Add a GitHub Actions job that diffs public function signatures in src/csvstats/ between the PR head and the base, and fails if any are added/changed without a pyproject.toml version bump."
+      }
+    }
+  ]
+}

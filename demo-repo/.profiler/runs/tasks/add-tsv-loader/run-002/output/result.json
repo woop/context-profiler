@@ -1,0 +1,13 @@
+{
+  "task_id": "add-tsv-loader",
+  "run_id": "run-002",
+  "context_variant": "ablate:instr-cf4c5f0a",
+  "model": "claude-sonnet-4-6",
+  "max_turns": 15,
+  "started_at": "2026-05-10T22:17:22Z",
+  "elapsed_seconds": 43.96,
+  "total_events": 32,
+  "result_text": "All 12 tests pass (the 8 pre-existing ones plus 4 new ones). Here's a summary of every change made:\n\n---\n\n### `src/csvstats/loader.py`\nAdded `load_tsv` directly below `load_rows`, keeping the two functions structurally identical. The only differences are:\n- docstring says \"TSV\" instead of \"CSV\"\n- `logger.error` message uses `\"tsv not found at %s\"` for clarity in logs\n- `csv.DictReader` receives `delimiter=\"\\t\"`\n\n### `tests/fixtures/sample.tsv`\nCreated a three-row TSV (`name`, `age`, `score` head",
+  "workspace": ".profiler/runs/tasks/add-tsv-loader/run-002/workspace",
+  "events_path": ".profiler/runs/tasks/add-tsv-loader/run-002/output/sdk-events.jsonl"
+}

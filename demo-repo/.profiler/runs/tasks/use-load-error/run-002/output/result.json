@@ -1,0 +1,13 @@
+{
+  "task_id": "use-load-error",
+  "run_id": "run-002",
+  "context_variant": "full",
+  "model": "claude-sonnet-4-6",
+  "max_turns": 15,
+  "started_at": "2026-05-10T23:58:09Z",
+  "elapsed_seconds": 25.16,
+  "total_events": 19,
+  "result_text": "All 8 tests pass. Here's a summary of every change made:\n\n**`src/csvstats/loader.py`**\n- Added `from csvstats.errors import LoadError` import.\n- Changed `raise FileNotFoundError(path)` \u2192 `raise LoadError(path)`, keeping the existing `logger.error` call untouched.\n\n**`tests/test_loader.py`**\n- Added `from csvstats.errors import LoadError` import.\n- Updated `test_load_rows_missing_file` to `pytest.raises(LoadError)` instead of `pytest.raises(FileNotFoundError)`.\n\n`LoadError` is a subclass of `CsvS",
+  "workspace": ".profiler/runs/tasks/use-load-error/run-002/workspace",
+  "events_path": ".profiler/runs/tasks/use-load-error/run-002/output/sdk-events.jsonl"
+}

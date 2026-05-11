@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://context-profiler/schemas/instructions.schema.json",
+  "title": "InstructionsArtifact",
+  "description": "Output of Stage 3 (extract-instructions). One instruction per source paragraph (or merged tightly-coupled bullets). Snippets and offsets must round-trip through source.slice(start, end).",
+  "type": "object",
+  "required": ["version", "source", "extraction", "instructions"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "source": {
+      "type": "object",
+      "required": ["repoName", "contextPath", "contextHash"],
+      "additionalProperties": false,
+      "properties": {
+        "repoName": { "type": "string", "minLength": 1 },
+        "contextPath": { "type": "string", "minLength": 1 },
+        "contextHash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "extraction": {
+      "type": "object",
+      "required": ["model", "promptVersion", "anchorFallbacks", "generatedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "model": { "type": "string", "minLength": 1 },
+        "promptVersion": { "type": "integer", "minimum": 1 },
+        "anchorFallbacks": { "type": "integer", "minimum": 0 },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "instructions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "snippet", "sourceFile", "startOffset", "endOffset"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^instr-[0-9a-f]{8}$" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+          "snippet": { "type": "string", "minLength": 1 },
+          "sourceFile": { "type": "string", "minLength": 1 },
+          "startOffset": { "type": "integer", "minimum": 0 },
+          "endOffset": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

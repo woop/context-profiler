@@ -1,0 +1,7 @@
+{
+  "stage": "assess",
+  "cache_key": "fc4cad123e976c85c8470a638e4adcd4dc2670a58bb71940b9d6e3c7bbea9cf3",
+  "source_hash": "sha256:3cad0351b53784a76f0b9690f5375c5a0dc5b368a85a48746a74996a43aeea7e",
+  "model": "claude-opus-4-7",
+  "generated_at": "2026-05-11T00:04:07Z"
+}

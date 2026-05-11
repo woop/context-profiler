@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  profiler:
+    name: Profiler tests (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: pip install jsonschema pytest
+      - name: Run profiler tests
+        run: python -m pytest profiler/ -v
+
+  frontend:
+    name: Frontend tests (vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/frontend/package-lock.json
+      - name: Install dependencies
+        working-directory: app/frontend
+        run: npm ci
+      - name: Type check
+        working-directory: app/frontend
+        run: npx tsc --noEmit
+      - name: Run tests
+        working-directory: app/frontend
+        run: npx vitest run
