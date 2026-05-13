@@ -3,7 +3,7 @@
 [![Tests](https://github.com/woop/context-profiler/actions/workflows/test.yml/badge.svg)](https://github.com/woop/context-profiler/actions/workflows/test.yml)
 [![Deploy](https://github.com/woop/context-profiler/actions/workflows/deploy.yml/badge.svg)](https://github.com/woop/context-profiler/actions/workflows/deploy.yml)
 
-**[Demo](https://context-profiler.pages.dev)** · **[Design rationale](RATIONALE.md)**
+**[Demo](https://context-profiler.pages.dev)** · **[Design rationale](RATIONALE.md)** · **[Video Walkthrough](https://youtu.be/JlHCsdJwXj0)**
 
 Agent context grows monotonically because there is no feedback loop for knowing which instructions still matter. Context Profiler is a prototype of that feedback loop.
 
